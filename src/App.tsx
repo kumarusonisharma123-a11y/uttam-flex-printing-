@@ -500,8 +500,14 @@ const Home = () => {
                 Get a Quote
                 <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
-              <a href="#services" className="bg-white/10 backdrop-blur-sm text-white border border-white/20 px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/20 transition-all flex items-center justify-center">
-                Our Services
+              <a 
+                href="https://wa.me/919122334455?text=Hi, I'm interested in your printing services." 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-emerald-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+              >
+                <Phone className="w-5 h-5" />
+                WhatsApp Us
               </a>
             </div>
           </motion.div>
@@ -809,9 +815,21 @@ const Home = () => {
                   <label className="block text-sm font-bold text-slate-700 mb-2">Message</label>
                   <textarea rows={4} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all" placeholder="Tell us about your project..."></textarea>
                 </div>
-                <button className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
+                <button 
+                  type="submit"
+                  className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+                >
                   Send Message
                 </button>
+                <a 
+                  href="https://wa.me/919122334455?text=Hi, I'm interested in your printing services." 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 flex items-center justify-center gap-2"
+                >
+                  <Phone className="w-5 h-5" />
+                  Chat on WhatsApp
+                </a>
               </form>
             </div>
           </div>
