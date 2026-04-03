@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrowserRouter as Router, Routes, Route, Link, useParams, useLocation, useNavigate } from 'react-router-dom';
-import { GoogleGenAI, ThinkingLevel } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
+
 import { TestimonialsSection } from './components/TestimonialsSection';
 import { PortfolioSection } from './components/PortfolioSection';
 import { QuoteCalculatorSection } from './components/QuoteCalculatorSection';
@@ -48,12 +49,12 @@ import {
   Mic,
   MicOff,
   ArrowLeft,
+  Upload,
   Square,
-  Volume2,
-  VolumeX,
   Play,
   Pause,
-  Loader2
+  Loader2,
+  Share2
 } from 'lucide-react';
 
 const WHATSAPP_NUMBER = "917481068602"; // User's WhatsApp number
@@ -86,18 +87,11 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
-  const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(() => {
-    const saved = localStorage.getItem('uttam_chat_autoplay');
-    return saved === 'true';
-  });
-  const [playingMessageIndex, setPlayingMessageIndex] = useState<number | null>(null);
-  const [isSpeechPaused, setIsSpeechPaused] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const stopRef = useRef(false);
-  const speechUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -179,58 +173,15 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
     scrollToBottom();
     localStorage.setItem('uttam_chat_history', JSON.stringify(messages));
     localStorage.setItem('uttam_chat_lang', language);
-    localStorage.setItem('uttam_chat_autoplay', String(isAutoPlayEnabled));
     localStorage.setItem('uttam_chat_darkmode', String(darkMode));
     
     return () => {};
-  }, [messages, language, isAutoPlayEnabled, darkMode]);
+  }, [messages, language, darkMode]);
 
   // Clean up speech on unmount
   useEffect(() => {
-    return () => {
-      window.speechSynthesis.cancel();
-    };
+    return () => {};
   }, []);
-
-  const stopSpeech = () => {
-    window.speechSynthesis.cancel();
-    setPlayingMessageIndex(null);
-    setIsSpeechPaused(false);
-  };
-
-  const speakMessage = (text: string, index: number) => {
-    if (playingMessageIndex === index) {
-      if (isSpeechPaused) {
-        window.speechSynthesis.resume();
-        setIsSpeechPaused(false);
-      } else {
-        window.speechSynthesis.pause();
-        setIsSpeechPaused(true);
-      }
-      return;
-    }
-
-    stopSpeech();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = language === 'hi' ? 'hi-IN' : 'en-IN';
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-
-    utterance.onend = () => {
-      setPlayingMessageIndex(null);
-      setIsSpeechPaused(false);
-    };
-
-    utterance.onerror = () => {
-      setPlayingMessageIndex(null);
-      setIsSpeechPaused(false);
-    };
-
-    speechUtteranceRef.current = utterance;
-    setPlayingMessageIndex(index);
-    window.speechSynthesis.speak(utterance);
-  };
 
   const clearChat = () => {
     const initialMessage = [
@@ -246,6 +197,68 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
     setShowClearConfirm(false);
   };
 
+  const chatRef = useRef<any>(null);
+
+  useEffect(() => {
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    chatRef.current = ai.chats.create({
+      model: "gemini-3.1-pro-preview",
+      config: {
+        systemInstruction: `You are the AI Assistant for 'Uttam Flex Printing', located in Jehanabad, Bihar. 
+        Your goal is to help customers with their printing queries.
+        
+        LANGUAGE: 
+        - Current Language: ${language === 'hi' ? 'Hindi' : 'English'}.
+        - You MUST respond ONLY in ${language === 'hi' ? 'Hindi' : 'English'}.
+        
+        CRITICAL: BE EXTREMELY FAST AND CONCISE. Answer in a snap. Use short sentences.
+        
+        MEMORY & CONTEXT:
+        - You MUST recall and refer to previous parts of the current conversation to provide relevant responses.
+        - If a user asks a follow-up question, use the previous context to answer accurately.
+        
+        BUSINESS INFO:
+        - Name: Uttam Flex Printing
+        - Proprietor: Mr. Ravi Kumar
+        - Tagline: Your Solutions, Your Moto.
+        - Location: Jehanabad, Bihar
+        - Phone: +91 7481068602
+        
+        AVAILABLE SERVICES:
+        ${JSON.stringify(services.map(s => ({ title: s.title, description: s.description })))}
+        
+        MATERIAL GUIDE:
+        ${JSON.stringify([
+          { name: "Flex", description: "Durable for outdoor banners, cost-effective." },
+          { name: "Vinyl", description: "Waterproof, high-quality finish, great for stickers." },
+          { name: "Sunboard", description: "Rigid, ideal for indoor displays and signs." },
+        ])}
+        
+        INSTRUCTIONS:
+        - Use the AVAILABLE SERVICES and MATERIAL GUIDE to answer customer questions accurately.
+        - If a user asks about a service or material not listed, politely inform them that you can help with other printing needs and ask for more details.
+        - If asked about pricing or specific turnaround times, provide general information based on the business context and suggest contacting the proprietor for specific quotes.
+        - Flex Printing: ₹12 per sq. ft.
+        - Vinyl Printing: ₹25 per sq. ft.
+        - Glow Sign Boards: ₹150 per sq. ft.
+        - Banners & Posters: ₹15 per sq. ft.
+        - Visiting Cards, ID Cards, T-shirt Printing, Standees, Mugs, etc.
+        
+        TURNAROUND TIMES:
+        - Standard Flex Printing: 2-4 hours (for simple designs)
+        - Vinyl Printing & Glow Sign Boards: 12-24 hours
+        - Complex/Bulk Projects: 48-72 hours
+        - Visiting Cards, ID Cards, T-shirts: 24 hours
+        
+        GUIDELINES:
+        - Be professional, friendly, and extremely concise.
+        - Answer in English or Hindi as per user preference.
+        - If the user is asking about printing services, prices, or orders, encourage them to visit the shop or contact via WhatsApp. If the user is asking general knowledge questions, do not push for orders.
+        - MAGIC DESIGN STORY: If the user asks for a "Magic Design Story", you MUST generate a creative design concept for their banner AND a short, culturally relevant story or blessing that can be printed as a QR code on the banner.`,
+      },
+    });
+  }, [language]);
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -258,55 +271,7 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       
-      // Use the chat API for better memory management
-      const chat = ai.chats.create({
-        model: "gemini-3.1-pro-preview",
-        config: {
-          systemInstruction: `You are the AI Assistant for 'Uttam Flex Printing', located in Jehanabad, Bihar. 
-          Your goal is to help customers with their printing queries.
-          
-          LANGUAGE: 
-          - Current Language: ${language === 'hi' ? 'Hindi' : 'English'}.
-          - You MUST respond ONLY in ${language === 'hi' ? 'Hindi' : 'English'}.
-          
-          CRITICAL: BE EXTREMELY FAST AND CONCISE. Answer in a snap. Use short sentences.
-          
-          MEMORY & CONTEXT:
-          - You MUST recall and refer to previous parts of the current conversation to provide relevant responses.
-          - If a user asks a follow-up question, use the previous context to answer accurately.
-          
-          BUSINESS INFO:
-          - Name: Uttam Flex Printing
-          - Proprietor: Mr. Ravi Kumar
-          - Tagline: Your Solutions, Your Moto.
-          - Location: Jehanabad, Bihar
-          - Phone: +91 7481068602
-          
-          SERVICES & PRICING:
-          - Flex Printing: ₹12 per sq. ft.
-          - Vinyl Printing: ₹25 per sq. ft.
-          - Glow Sign Boards: ₹150 per sq. ft.
-          - Banners & Posters: ₹15 per sq. ft.
-          - Visiting Cards, ID Cards, T-shirt Printing, Standees, Mugs, etc.
-          
-          TURNAROUND TIMES:
-          - Standard Flex: 2-4 hours
-          - Complex Projects: 24-48 hours
-          
-          GUIDELINES:
-          - Be professional, friendly, and extremely concise.
-          - Answer in English or Hindi as per user preference.
-          - If the user is asking about printing services, prices, or orders, encourage them to visit the shop or contact via WhatsApp. If the user is asking general knowledge questions, do not push for orders.
-          - MAGIC DESIGN STORY: If the user asks for a "Magic Design Story", you MUST generate a creative design concept for their banner AND a short, culturally relevant story or blessing that can be printed as a QR code on the banner.`,
-        },
-        // Pass the history to the chat session
-        history: messages.map(m => ({
-          role: m.role === 'user' ? 'user' : 'model',
-          parts: [{ text: m.text }]
-        }))
-      });
-
-      const stream = await chat.sendMessageStream({ message: userMessage });
+      const stream = await chatRef.current.sendMessageStream({ message: userMessage });
       stopRef.current = false;
 
       let botResponse = "";
@@ -329,9 +294,7 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
       }
 
       // Auto-play speech if enabled
-      if (isAutoPlayEnabled && botResponse) {
-        speakMessage(botResponse, messages.length + 1);
-      }
+      // Audio removed
     } catch (error) {
       console.error("ChatBot Error:", error);
       setMessages(prev => [...prev, { role: 'bot', text: "Sorry, I'm having trouble connecting. Please try again later." }]);
@@ -359,7 +322,7 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
           }
         >
           {/* Header */}
-          <div className={`${darkMode ? 'bg-slate-800' : 'bg-indigo-600'} p-4 text-white flex justify-between items-center shrink-0`}>
+          <div className={`${darkMode ? 'bg-zinc-800' : 'bg-zinc-900'} p-4 text-white flex justify-between items-center shrink-0`}>
             <div className="flex items-center gap-3">
               {isStandalone && (
                 <button 
@@ -399,18 +362,6 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
                 title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
               >
                 {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
-
-              <button
-                onClick={() => {
-                  const newState = !isAutoPlayEnabled;
-                  setIsAutoPlayEnabled(newState);
-                  if (!newState) stopSpeech();
-                }}
-                className={`p-2 rounded-full transition-all ${isAutoPlayEnabled ? 'bg-white/20 text-white' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
-                title={isAutoPlayEnabled ? "Auto-play Audio: ON" : "Auto-play Audio: OFF"}
-              >
-                {isAutoPlayEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
               </button>
               
               <div className="relative">
@@ -463,27 +414,13 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
                 <div key={idx} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
                   <div className={`max-w-[85%] p-3 rounded-2xl text-sm relative group transition-all duration-300 ${
                     m.role === 'user' 
-                      ? 'bg-indigo-600 text-white rounded-tr-none' 
-                      : `${darkMode ? 'bg-slate-700 text-slate-100' : 'bg-white text-slate-900'} shadow-sm border rounded-tl-none ${playingMessageIndex === idx ? 'border-indigo-400 ring-2 ring-indigo-100 animate-pulse' : (darkMode ? 'border-slate-600' : 'border-slate-100')}`
+                      ? 'bg-zinc-900 text-white rounded-tr-none' 
+                      : `${darkMode ? 'bg-zinc-700 text-zinc-100' : 'bg-white text-zinc-900'} shadow-sm border rounded-tl-none ${darkMode ? 'border-zinc-600' : 'border-zinc-100'}`
                   }`}>
                     {m.text}
                     
                     {m.role === 'bot' && m.text && (
-                      <button
-                        onClick={() => speakMessage(m.text, idx)}
-                        className={`absolute -right-10 top-0 p-2 rounded-full transition-all opacity-0 group-hover:opacity-100 ${
-                          playingMessageIndex === idx 
-                            ? 'bg-indigo-100 text-indigo-600 opacity-100' 
-                            : 'text-slate-400 hover:text-indigo-600 hover:bg-slate-100'
-                        }`}
-                        title={playingMessageIndex === idx ? (isSpeechPaused ? "Resume" : "Pause") : "Speak Message"}
-                      >
-                        {playingMessageIndex === idx ? (
-                          isSpeechPaused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />
-                        ) : (
-                          <Volume2 className="w-3.5 h-3.5" />
-                        )}
-                      </button>
+                      <div className="absolute -right-10 top-0 p-2" />
                     )}
                   </div>
                 </div>
@@ -563,18 +500,24 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
                   type="text" 
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                      handleSend(e as any);
+                    }
+                  }}
+                  aria-label={language === 'hi' ? "चैट इनपुट" : "Chat input"}
                   placeholder={language === 'hi' ? "मुझसे कुछ भी पूछें..." : "Ask me anything..."}
                   className={`w-full px-4 py-2 pr-10 rounded-xl border-none focus:ring-2 focus:ring-indigo-600 outline-none text-sm ${darkMode ? 'bg-slate-700 text-white placeholder-slate-400' : 'bg-slate-100 text-slate-800 placeholder-slate-500'}`}
                 />
                 <button
                   type="button"
                   onClick={toggleListening}
+                  aria-label={language === 'hi' ? "बोलकर पूछें" : "Voice Input"}
                   className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${
                     isListening 
                       ? 'bg-red-500 text-white animate-pulse' 
                       : (darkMode ? 'text-slate-400 hover:text-indigo-400 hover:bg-slate-600' : 'text-slate-400 hover:text-indigo-600 hover:bg-slate-200')
                   }`}
-                  title={language === 'hi' ? "बोलकर पूछें" : "Voice Input"}
                 >
                   {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                 </button>
@@ -666,6 +609,35 @@ const FloatingHelpButton = ({ onOpenChat }: { onOpenChat: () => void }) => {
                   <div className="text-xs text-slate-500">Common questions</div>
                 </div>
               </Link>
+              
+              <button 
+                onClick={() => {
+                  const shareData = {
+                    title: 'Uttam Flex Printing',
+                    text: 'Check out Uttam Flex Printing for all your printing needs!',
+                    url: window.location.href,
+                  };
+                  if (navigator.share) {
+                    navigator.share(shareData).catch(console.error);
+                  } else {
+                    navigator.clipboard.writeText(window.location.href).then(() => {
+                      alert('Link copied to clipboard!');
+                    }).catch(() => {
+                      alert('Share not supported and copy failed.');
+                    });
+                  }
+                  setIsOpen(false);
+                }}
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group text-left"
+              >
+                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                  <Share2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-slate-900">Share Website</div>
+                  <div className="text-xs text-slate-500">Spread the word</div>
+                </div>
+              </button>
             </div>
           </motion.div>
         )}
@@ -900,8 +872,9 @@ const services = [
     description: "High-quality large format flex printing for billboards and shop fronts.",
     longDescription: "Flex Printing service offers durable and vibrant solutions for all your large-scale advertising needs. We use high-grade PVC flex material that is weather-resistant and perfect for outdoor use. Whether it's for shop banners, event backdrops, or massive billboards, the state-of-the-art printing technology ensures crisp images and true-to-life colors that grab attention from a distance.",
     icon: <Printer className="w-6 h-6" />,
-    image: "https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?auto=format&fit=crop&q=80&w=800&h=600",
-    category: "Large Format"
+    image: "https://picsum.photos/seed/flex-printing-banner/800/600",
+    category: "Large Format",
+    popularity: 10
   },
   {
     slug: "vinyl-printing",
@@ -909,8 +882,9 @@ const services = [
     description: "Premium vinyl printing for windows, walls, and vehicle branding.",
     longDescription: "Vinyl printing is the perfect choice for high-resolution graphics and long-lasting applications. We offer various types of vinyl, including glossy, matte, and transparent options. Vinyl is ideal for wall decals, window displays, and vehicle wraps. With precision cutting and high-quality adhesive, vinyl prints are easy to apply and resistant to fading, ensuring your brand looks professional for years.",
     icon: <ImageIcon className="w-6 h-6" />,
-    image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80&w=800&h=600",
-    category: "Large Format"
+    image: "https://picsum.photos/seed/vinyl-printing-stickers/800/600",
+    category: "Large Format",
+    popularity: 8
   },
   {
     slug: "visiting-cards",
@@ -918,8 +892,9 @@ const services = [
     description: "Professional business cards with premium finishes and textures.",
     longDescription: "Make a lasting first impression with premium business card printing. We offer a wide range of paper stocks, from standard cardstock to luxury textured papers. Choose from various finishes like matte lamination, spot UV, or gold foiling to add that extra touch of sophistication. The design team can help you create a card that perfectly represents your professional identity.",
     icon: <Contact className="w-6 h-6" />,
-    image: "https://images.unsplash.com/photo-1589118949245-7d38baf380d6?auto=format&fit=crop&q=80&w=800&h=600",
-    category: "Business Essentials"
+    image: "https://picsum.photos/seed/visiting-cards-design/800/600",
+    category: "Business Essentials",
+    popularity: 9
   },
   {
     slug: "banners-posters",
@@ -927,8 +902,19 @@ const services = [
     description: "Eye-catching large scale banners and posters for all your events.",
     longDescription: "From small indoor posters to massive outdoor banners, we provide high-impact visual solutions for any occasion. Posters are printed on high-quality photo paper with rich colors, while banners are made from reinforced vinyl with grommets for easy hanging. Perfect for sales promotions, movie releases, or educational displays, the prints are designed to stand out.",
     icon: <Flag className="w-6 h-6" />,
-    image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&q=80&w=800&h=600",
-    category: "Large Format"
+    image: "https://picsum.photos/seed/banners-posters-event/800/600",
+    category: "Large Format",
+    popularity: 7
+  },
+  {
+    slug: "print-your-own-design",
+    title: "Print Your Own Design",
+    description: "High-quality printing for your provided designs.",
+    longDescription: "Have a design ready? We offer professional printing services for your custom artwork, logos, or documents. Upload your file, and we'll ensure it's printed with precision, high-quality ink, and premium materials. Whether it's for personal projects, business needs, or creative endeavors, we handle your files with care to deliver stunning results.",
+    icon: <Upload className="w-6 h-6" />,
+    image: "https://picsum.photos/seed/custom-printing-design/800/600",
+    category: "Business Essentials",
+    popularity: 6
   },
   {
     slug: "standees",
@@ -936,8 +922,9 @@ const services = [
     description: "Portable and durable roll-up standees for exhibitions and shops.",
     longDescription: "Roll-up standees are the ultimate portable marketing tool. Lightweight and easy to set up, they come with a durable aluminum base and a high-quality printed graphic. Ideal for trade shows, retail stores, and corporate events, standees provide a professional backdrop that can be transported and reused multiple times.",
     icon: <Monitor className="w-6 h-6" />,
-    image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?auto=format&fit=crop&q=80&w=800&h=600",
-    category: "Large Format"
+    image: "https://picsum.photos/seed/roll-up-standee/800/600",
+    category: "Large Format",
+    popularity: 5
   },
   {
     slug: "invitation-cards",
@@ -945,8 +932,9 @@ const services = [
     description: "Custom designed cards for weddings, parties, and corporate events.",
     longDescription: "Celebrate your special moments with beautifully crafted invitation cards. We specialize in custom designs for weddings, birthdays, and corporate galas. The printing process includes high-quality cardstock and specialized techniques like embossing and laser cutting. Let us help you set the tone for your event with an invitation that your guests will cherish.",
     icon: <CreditCard className="w-6 h-6" />,
-    image: "https://images.unsplash.com/photo-1607344645866-009c320b63e0?auto=format&fit=crop&q=80&w=800&h=600",
-    category: "Promotional Materials"
+    image: "https://picsum.photos/seed/invitation-cards-wedding/800/600",
+    category: "Promotional Materials",
+    popularity: 8
   },
   {
     slug: "id-cards",
@@ -954,8 +942,9 @@ const services = [
     description: "High-quality PVC ID cards for schools, colleges, and corporate offices.",
     longDescription: "We provide secure and professional PVC ID card printing for organizations of all sizes. Our cards are durable, tamper-resistant, and can include features like barcodes, QR codes, and magnetic strips. We also offer a variety of accessories like lanyards and card holders to complete your identification system.",
     icon: <IdCard className="w-6 h-6" />,
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800&h=600",
-    category: "Business Essentials"
+    image: "https://picsum.photos/seed/pvc-id-cards/800/600",
+    category: "Business Essentials",
+    popularity: 7
   },
   {
     slug: "tshirt-printing",
@@ -963,8 +952,9 @@ const services = [
     description: "Customized T-shirt printing for events, teams, and branding.",
     longDescription: "Get your brand noticed with our custom T-shirt printing services. We use various methods like screen printing, heat transfer, and sublimation to ensure high-quality, long-lasting prints on a variety of fabrics. Whether it's for promotional giveaways, sports teams, or corporate uniforms, we deliver comfortable and stylish apparel.",
     icon: <Shirt className="w-6 h-6" />,
-    image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&q=80&w=800&h=600",
-    category: "Promotional Materials"
+    image: "https://picsum.photos/seed/custom-tshirt-printing/800/600",
+    category: "Promotional Materials",
+    popularity: 9
   },
   {
     slug: "glow-sign-boards",
@@ -972,7 +962,7 @@ const services = [
     description: "Backlit glow sign boards for high visibility during day and night.",
     longDescription: "Illuminate your brand with our premium glow sign boards. These backlit displays are designed for maximum visibility, making your business stand out even in the dark. We use high-quality LED lighting and durable translucent materials to create signs that are energy-efficient and long-lasting.",
     icon: <Sun className="w-6 h-6" />,
-    image: "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://picsum.photos/seed/glow-sign-board/800/600",
     category: "Large Format"
   },
   {
@@ -981,7 +971,7 @@ const services = [
     description: "Branded promotional canopies for outdoor marketing and events.",
     longDescription: "Promotional canopies are perfect for outdoor activations and events. They provide shade and protection while serving as a massive branding surface. Easy to assemble and dismantle, canopies are made from high-quality, water-resistant fabric and a sturdy frame, ensuring your brand remains visible in any weather.",
     icon: <Tent className="w-6 h-6" />,
-    image: "https://images.unsplash.com/photo-1565120130276-dfbd9a7a3ad7?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://picsum.photos/seed/promotional-canopy/800/600",
     category: "Large Format"
   },
   {
@@ -990,7 +980,7 @@ const services = [
     description: "Direct printing on durable sunboards for indoor and outdoor displays.",
     longDescription: "Sunboard printing is a versatile solution for indoor signage and displays. We print directly onto high-density foam boards, resulting in a lightweight yet rigid product. Perfect for menu boards, directional signs, and exhibition panels, our sunboard prints are durable and offer a professional finish.",
     icon: <Layers className="w-6 h-6" />,
-    image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://picsum.photos/seed/sunboard-printing-display/800/600",
     category: "Large Format"
   },
   {
@@ -999,7 +989,7 @@ const services = [
     description: "Personalized ceramic mugs for gifts and corporate branding.",
     longDescription: "Custom mug printing is a popular choice for personalized gifts and corporate branding. Sublimation printing is used to ensure vibrant colors that are dishwasher and microwave safe. Choose from standard white mugs, magic mugs, or travel tumblers to showcase your brand or special message.",
     icon: <Coffee className="w-6 h-6" />,
-    image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://picsum.photos/seed/custom-mug-printing/800/600",
     category: "Promotional Materials"
   }
 ];
@@ -1362,8 +1352,10 @@ const Home = () => {
   const [showScrollDown, setShowScrollDown] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
+  const [sortBy, setSortBy] = useState("popularity");
   const [activeProjectCategory, setActiveProjectCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isServicesOpen, setIsServicesOpen] = useState(false);
 
   const featuredProjects = [
     {
@@ -1429,6 +1421,12 @@ const Home = () => {
     const matchesSearch = service.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          service.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
+  }).sort((a, b) => {
+    if (sortBy === "alphabetical") {
+      return a.title.localeCompare(b.title);
+    } else {
+      return (b.popularity || 0) - (a.popularity || 0);
+    }
   });
 
   useEffect(() => {
@@ -1471,33 +1469,34 @@ const Home = () => {
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden"
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-zinc-100"
             >
               <div className="p-8">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-2xl font-bold text-slate-900">Request a Quote</h3>
-                  <button onClick={() => setIsQuoteModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                    <X className="w-6 h-6 text-slate-500" />
+                  <h3 className="text-2xl font-bold text-zinc-950">Request a Quote</h3>
+                  <button onClick={() => setIsQuoteModalOpen(false)} className="p-2 hover:bg-zinc-100 rounded-full transition-colors">
+                    <X className="w-6 h-6 text-zinc-500" />
                   </button>
                 </div>
                 <form className="space-y-4" onSubmit={handleSubmit}>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Full Name</label>
-                    <input type="text" required className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Your Name" />
+                    <label className="block text-sm font-bold text-zinc-700 mb-1">Full Name</label>
+                    <input type="text" required className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:ring-2 focus:ring-zinc-950 transition-all" placeholder="Your Name" />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Phone Number</label>
-                    <input type="tel" required className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Your Phone" />
+                    <label className="block text-sm font-bold text-zinc-700 mb-1">Phone Number</label>
+                    <input type="tel" required className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:ring-2 focus:ring-zinc-950 transition-all" placeholder="Your Phone" />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Service</label>
+                    <label className="block text-sm font-bold text-zinc-700 mb-1">Service</label>
                     <select 
                       value={selectedService} 
                       onChange={(e) => setSelectedService(e.target.value)}
-                      className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-600 bg-white"
+                      className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:ring-2 focus:ring-zinc-950 transition-all bg-white"
                     >
                       <option value="">Select a Service</option>
                       {services.map(s => (
@@ -1506,10 +1505,10 @@ const Home = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Message</label>
-                    <textarea rows={3} className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Project details..."></textarea>
+                    <label className="block text-sm font-bold text-zinc-700 mb-1">Message</label>
+                    <textarea rows={3} className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:ring-2 focus:ring-zinc-950 transition-all" placeholder="Project details..."></textarea>
                   </div>
-                  <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all">
+                  <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-xl font-bold hover:bg-zinc-800 transition-all transform active:scale-[0.98]">
                     Submit Request
                   </button>
                 </form>
@@ -1549,7 +1548,7 @@ const Home = () => {
 
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-8">
-              {['home', 'services', 'aiAssistant', 'about', 'contact'].map((item) => (
+              {['home', 'aiAssistant', 'about', 'contact'].map((item) => (
                 <a 
                   key={item} 
                   href={`#${t(item as any).toLowerCase().replace(' ', '-')}`}
@@ -1558,6 +1557,29 @@ const Home = () => {
                   {t(item as any)}
                 </a>
               ))}
+              <div className="relative">
+                <button 
+                  onClick={() => setIsServicesOpen(!isServicesOpen)}
+                  className={`text-sm font-medium transition-colors hover:text-indigo-600 flex items-center gap-1 ${scrolled ? 'text-slate-600' : 'text-white/90'}`}
+                >
+                  {t('services' as any)}
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                {isServicesOpen && (
+                  <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50">
+                    {services.map((service) => (
+                      <a 
+                        key={service.title} 
+                        href={`#services`}
+                        onClick={() => setIsServicesOpen(false)}
+                        className="block px-4 py-2 text-sm text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                      >
+                        {service.title}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button 
                 onClick={() => openQuoteModal()}
                 className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
@@ -1581,17 +1603,18 @@ const Home = () => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-40 bg-white pt-24 px-6 md:hidden"
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-40 bg-zinc-50 pt-24 px-6 md:hidden"
           >
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
               {['Home', 'Services', 'AI Assistant', 'About', 'Contact'].map((item) => (
                 <a 
                   key={item} 
                   href={`#${item.toLowerCase().replace(' ', '-')}`}
-                  className="text-2xl font-bold text-slate-900"
+                  className="text-2xl font-bold text-zinc-950 block py-4 border-b border-zinc-200"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item}
@@ -1602,7 +1625,7 @@ const Home = () => {
                   openQuoteModal();
                   setIsMenuOpen(false);
                 }}
-                className="bg-indigo-600 text-white w-full py-4 rounded-xl text-lg font-bold"
+                className="bg-zinc-950 text-white w-full py-4 rounded-xl text-lg font-bold mt-6"
               >
                 Get a Quote
               </button>
@@ -1612,15 +1635,23 @@ const Home = () => {
       </AnimatePresence>
 
       {/* Hero Section */}
-      <section id="home" className="relative min-h-screen flex items-center overflow-hidden bg-slate-900 pt-24 pb-12 md:pt-0 md:pb-0">
+      <motion.section 
+        id="home" 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+        className="relative min-h-screen flex items-center overflow-hidden bg-zinc-950 pt-24 pb-12 md:pt-0 md:pb-0"
+      >
         <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80&w=1920&h=1080" 
-            alt="Printing Background" 
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
             className="w-full h-full object-cover opacity-40"
-            referrerPolicy="no-referrer"
+            src="https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_25fps.mp4"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/80 to-transparent" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -1694,7 +1725,7 @@ const Home = () => {
         {/* Floating Stats */}
         <div className="absolute bottom-12 left-0 right-0 z-10 hidden lg:block">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-3 gap-8 p-8 bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10">
+            <div className="grid grid-cols-3 gap-8 p-8 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl">
               {stats.map((stat, idx) => (
                 <div key={idx} className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 flex items-center justify-center text-indigo-400">
@@ -1709,22 +1740,22 @@ const Home = () => {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Services Section */}
-      <section id="services" className="py-24 bg-slate-50">
+      <section id="services" className="py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">{t('coreServices')}</h2>
-            <p className="text-slate-600 mb-10">{t('servicesSubtitle')}</p>
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-5xl font-display font-bold text-slate-950 mb-6 tracking-tight">{t('coreServices')}</h2>
+            <p className="text-lg text-slate-600 leading-relaxed">{t('servicesSubtitle')}</p>
             
-            <div className="max-w-md mx-auto mb-10 relative">
+            <div className="max-w-md mx-auto mt-12 mb-10 relative">
               <input 
                 type="text" 
-                placeholder="Search services (e.g. flex, card, banner)..."
+                placeholder="Search services by title or description..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-6 py-4 rounded-2xl border border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-600 outline-none transition-all pl-12"
+                className="w-full px-6 py-4 rounded-full border border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all pl-12 bg-slate-50"
               />
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1741,6 +1772,17 @@ const Home = () => {
               )}
             </div>
 
+            <div className="flex flex-wrap justify-center gap-3 mb-6">
+              <select 
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-6 py-2.5 rounded-full border border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all bg-slate-50 text-sm font-bold text-slate-600"
+              >
+                <option value="popularity">Sort by Popularity</option>
+                <option value="alphabetical">Sort Alphabetically</option>
+              </select>
+            </div>
+
             <div className="flex flex-wrap justify-center gap-3">
               {categories.map((cat) => (
                 <button
@@ -1748,8 +1790,8 @@ const Home = () => {
                   onClick={() => setActiveCategory(cat)}
                   className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
                     activeCategory === cat
-                      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
-                      : "bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600"
+                      ? "bg-slate-950 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
                   {cat}
@@ -1773,26 +1815,30 @@ const Home = () => {
                   key={service.title}
                   whileHover={{ y: -12, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 group cursor-pointer transition-all hover:shadow-2xl hover:border-indigo-200"
+                  className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 group cursor-pointer transition-all hover:shadow-2xl hover:border-indigo-100 hover:bg-gradient-to-b hover:from-white hover:to-indigo-50/30"
                 >
-                <div className="h-48 overflow-hidden">
+                <div className="h-56 overflow-hidden">
                   <img 
                     src={service.image} 
                     alt={service.title} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     referrerPolicy="no-referrer"
                   />
                 </div>
-                <div className="p-6">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4">
+                <div className="p-8">
+                  <motion.div 
+                    className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-900 mb-6"
+                    whileHover={{ scale: 1.1, rotate: 10 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                  >
                     {service.icon}
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">{service.title}</h3>
-                  <p className="text-slate-600 text-sm leading-relaxed mb-4">
+                  </motion.div>
+                  <h3 className="text-2xl font-display font-bold text-slate-950 mb-3">{service.title}</h3>
+                  <p className="text-slate-600 text-sm leading-relaxed mb-6">
                     {service.description}
                   </p>
                   <div className="flex flex-col gap-3">
-                    <Link to={`/services/${service.slug}`} className="text-indigo-600 font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
+                    <Link to={`/services/${service.slug}`} className="text-slate-950 font-bold text-sm flex items-center gap-2 hover:gap-3 transition-all">
                       Learn More <ChevronRight className="w-4 h-4" />
                     </Link>
                     <button 
@@ -1800,9 +1846,24 @@ const Home = () => {
                         e.stopPropagation();
                         openQuoteModal(service.title);
                       }}
-                      className="w-full bg-slate-900 text-white py-3 rounded-xl text-sm font-bold hover:bg-indigo-600 transition-all"
+                      className="w-full bg-slate-900 text-white py-3 rounded-xl text-sm font-bold hover:bg-indigo-600 transition-all shadow-md hover:shadow-indigo-500/20"
                     >
                       Request Custom Quote
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const relevantProject = featuredProjects.find(p => p.serviceSlug === service.slug);
+                        if (relevantProject) {
+                          setSelectedProject(relevantProject);
+                          setIsGalleryOpen(true);
+                        } else {
+                          alert("No gallery available for this service.");
+                        }
+                      }}
+                      className="w-full bg-slate-100 text-slate-900 py-3 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all"
+                    >
+                      Quick View
                     </button>
                   </div>
                 </div>
@@ -1860,6 +1921,36 @@ const Home = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-4">{t('expertSupport')}</h3>
               <p className="text-slate-600">{t('expertSupportDesc')}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-4xl font-bold text-slate-900 mb-6">Custom Graphic Design Services</h2>
+              <p className="text-lg text-slate-600 mb-8">
+                Elevate your brand with professional graphic design. Our expert designers create visually stunning graphics that capture your brand's essence, ensuring your marketing materials stand out and leave a lasting impression. From logos and brochures to social media assets, we bring your vision to life.
+              </p>
+              <button 
+                onClick={() => {
+                  const contactSection = document.getElementById('contact');
+                  contactSection?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="bg-indigo-600 text-white px-8 py-4 rounded-full font-bold hover:bg-indigo-700 transition-all"
+              >
+                Design Your Vision
+              </button>
+            </div>
+            <div className="relative">
+              <img 
+                src="https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80&w=800&h=600" 
+                alt="Graphic Design" 
+                className="rounded-3xl shadow-2xl"
+                referrerPolicy="no-referrer"
+              />
             </div>
           </div>
         </div>
