@@ -2375,7 +2375,8 @@ const Home = () => {
 
 export default function App() {
   useEffect(() => {
-    // Tawk.to integration
+    // Tawk.to integration (Disabled until valid Property ID is provided)
+    /*
     const Tawk_API = (window as any).Tawk_API || {};
     const Tawk_LoadStart = new Date();
     (function(){
@@ -2387,6 +2388,7 @@ export default function App() {
       s1.setAttribute('crossorigin','*');
       s0.parentNode?.insertBefore(s1,s0);
     })();
+    */
   }, []);
 
   return (
