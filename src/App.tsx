@@ -62,17 +62,29 @@ const WHATSAPP_MESSAGE = encodeURIComponent("Hi, I'm interested in your printing
 
 const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, onClose: () => void, isStandalone?: boolean }) => {
   const [language, setLanguage] = useState<'en' | 'hi'>(() => {
-    const saved = localStorage.getItem('uttam_chat_lang');
-    return (saved as 'en' | 'hi') || 'en';
+    try {
+      const saved = localStorage.getItem('uttam_chat_lang');
+      return (saved === 'en' || saved === 'hi') ? saved : 'en';
+    } catch (e) {
+      return 'en';
+    }
   });
   const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('uttam_chat_darkmode');
-    return saved === 'true';
+    try {
+      const saved = localStorage.getItem('uttam_chat_darkmode');
+      return saved === 'true';
+    } catch (e) {
+      return false;
+    }
   });
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [messages, setMessages] = useState<{ role: 'user' | 'bot', text: string }[]>(() => {
-    const saved = localStorage.getItem('uttam_chat_history');
-    if (saved) return JSON.parse(saved);
+    try {
+      const saved = localStorage.getItem('uttam_chat_history');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      // Ignore error
+    }
     
     return [
       { 
