@@ -212,7 +212,12 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
   const chatRef = useRef<any>(null);
 
   useEffect(() => {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("GEMINI_API_KEY is missing");
+      return;
+    }
+    const ai = new GoogleGenAI({ apiKey });
     chatRef.current = ai.chats.create({
       model: "gemini-3.1-pro-preview",
       config: {
@@ -2388,13 +2393,7 @@ const Home = () => {
 export default function App() {
   return (
     <div className="overflow-x-hidden">
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/chat" element={<ChatPage />} />
-          <Route path="/services/:slug" element={<ServiceDetail />} />
-        </Routes>
-      </Router>
+      <h1>Website is loading...</h1>
     </div>
   );
 }
