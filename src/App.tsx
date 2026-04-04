@@ -2393,7 +2393,13 @@ const Home = () => {
 export default function App() {
   return (
     <div className="overflow-x-hidden">
-      <h1>Website is loading...</h1>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/services/:slug" element={<ServiceDetail />} />
+        </Routes>
+      </Router>
     </div>
   );
 }
