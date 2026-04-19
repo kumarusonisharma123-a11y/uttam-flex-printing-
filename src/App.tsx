@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrowserRouter as Router, Routes, Route, Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import { GoogleGenAI } from "@google/genai";
 
-import { TestimonialsSection } from './components/TestimonialsSection';
 import { PortfolioSection } from './components/PortfolioSection';
 import { QuoteCalculatorSection } from './components/QuoteCalculatorSection';
 import { MaterialGuideSection } from './components/MaterialGuideSection';
@@ -37,6 +36,7 @@ import {
   Coffee,
   HelpCircle,
   Calculator,
+  Percent,
   MessageCircle,
   MessageSquare,
   Maximize2,
@@ -49,16 +49,240 @@ import {
   Mic,
   MicOff,
   ArrowLeft,
+  ArrowRight,
+  ShieldCheck,
   Upload,
   Square,
   Play,
   Pause,
   Loader2,
-  Share2
+  Share2,
+  Key,
+  StickyNote,
+  BookOpen,
+  Plus,
+  Minus,
+  ShoppingBag,
+  Trash,
+  Wallet
 } from 'lucide-react';
 
 const WHATSAPP_NUMBER = "917481068602"; // User's WhatsApp number
+const UPI_ID = "7481068602@ybl"; // User's UPI ID
 const WHATSAPP_MESSAGE = encodeURIComponent("Hi, I'm interested in your printing services.");
+
+const translations = {
+  en: {
+    heroTitle: "Premium Printing Solutions for Your Brand",
+    heroSubtitle: "From high-quality flex banners to professional business cards, we bring your vision to life with precision and speed.",
+    getQuote: "Get a Quote",
+    ourServices: "Our Services",
+    featuredProjects: "Featured Projects",
+    aboutUs: "About Us",
+    contactUs: "Contact Us",
+    all: "All",
+    searchServices: "Search services...",
+    viewDetails: "View Details",
+    popular: "Popular",
+    footerText: "Uttam Flex Printing - Your trusted partner for all printing needs in Jehanabad.",
+    rightsReserved: "All rights reserved.",
+    callUs: "Call Us",
+    emailUs: "Email Us",
+    visitUs: "Visit Us",
+    location: "Jehanabad, Bihar",
+    fastDelivery: "Fast Delivery",
+    qualityWork: "Quality Work",
+    bestPrice: "Best Price",
+    happyClients: "Happy Clients",
+    projectsCompleted: "Projects Completed",
+    yearsExperience: "Years Experience",
+    gallery: "Gallery",
+    close: "Close",
+    send: "Send",
+    typeMessage: "Type a message...",
+    aiAssistant: "AI Assistant",
+    clearChat: "Clear Chat",
+    darkMode: "Dark Mode",
+    lightMode: "Light Mode",
+    language: "Language",
+    hindi: "Hindi",
+    english: "English",
+    voiceInput: "Voice Input",
+    stopVoice: "Stop Voice",
+    uploadImage: "Upload Image",
+    calculating: "Calculating...",
+    totalPrice: "Total Price",
+    orderNow: "Order Now",
+    pricePerSqft: "Price per sqft",
+    quantity: "Quantity",
+    size: "Size",
+    width: "Width",
+    height: "Height",
+    feet: "Feet",
+    inches: "Inches",
+    selectService: "Select Service",
+    noResults: "No results found.",
+    loading: "Loading...",
+    success: "Success!",
+    error: "Error occurred.",
+    submit: "Submit",
+    name: "Name",
+    email: "Email",
+    phone: "Phone",
+    message: "Message",
+    subject: "Subject",
+    sending: "Sending...",
+    messageSent: "Your message has been sent successfully!",
+    topOffer: "Special Offer: 10% OFF on first order! Code: UTTAM10",
+    help: "Help",
+    faq: "FAQ",
+    share: "Share",
+    whatsapp: "WhatsApp",
+    call: "Call",
+    website: "Website",
+    privacyPolicy: "Privacy Policy",
+    termsOfService: "Terms of Service",
+    proprietor: "Proprietor",
+    address: "Address",
+    openingHours: "Opening Hours",
+    monSat: "Mon - Sat",
+    sunday: "Sunday",
+    whatsappUs: "WhatsApp Us",
+    ourStory: "Our Story",
+    expertPrintingSolutions: "Expert Printing Solutions Since 2015",
+    aboutDesc1: "With over 9 years of excellence, we've been the heartbeat of quality printing in Jehanabad.",
+    aboutDesc2: "We specialize in state-of-the-art flex, vinyl, and promotional printing.",
+    contactDesc: "Ready to elevate your brand? Get in touch with us for premium printing services.",
+    fullName: "Full Name",
+    emailAddress: "Email Address",
+    serviceNeeded: "Service Needed",
+    sendMessage: "Send Message",
+    footerDesc: "Your ultimate destination for all your printing needs.",
+    quickLinks: "Quick Links",
+    home: "Home",
+    services: "Services",
+    about: "About",
+    contact: "Contact",
+    workingHours: "Working Hours",
+    serviceDetails: "View Details",
+    startChattingNow: "Start Chatting Now",
+    aiPoweredSupport: "AI-Powered Support",
+    chatWithOurAIAssistant: "Chat with Our AI Assistant",
+    aiAssistantDesc: "Need quick answers about prices or material? Our AI is here 24/7.",
+    fullScreenMode: "Full Screen Mode",
+    featuredWork: "Featured Work",
+    priceEstimator: "Price Estimator",
+    off: "OFF",
+    servicesSubtitle: "We offer a wide range of high-quality printing services to meet all your business and personal needs.",
+    chatOnWhatsApp: "Chat on WhatsApp",
+    addToCart: "Add to Cart",
+    cart: "Cart",
+    emptyCart: "Your cart is empty",
+    total: "Total",
+    checkout: "Checkout",
+    sale: "Sale",
+    items: "items",
+    item: "item",
+    removedFromCart: "Removed from cart",
+    addedToCart: "Added to cart"
+  },
+  hi: {
+    heroTitle: "आपके ब्रांड के लिए प्रीमियम प्रिंटिंग समाधान",
+    heroSubtitle: "उच्च गुणवत्ता वाले फ्लेक्स बैनर से लेकर पेशेवर बिजनेस कार्ड तक, हम आपकी दृष्टि को सटीकता और गति के साथ जीवंत करते हैं।",
+    getQuote: "कोट प्राप्त करें",
+    ourServices: "हमारी सेवाएँ",
+    featuredProjects: "चुनिंदा प्रोजेक्ट्स",
+    aboutUs: "हमारे बारे में",
+    contactUs: "संपर्क करें",
+    all: "सभी",
+    searchServices: "सेवाएं खोजें...",
+    viewDetails: "विवरण देखें",
+    popular: "लोकप्रिय",
+    footerText: "उत्तम फ्लेक्स प्रिंटिंग - जहानाबाद में आपकी सभी प्रिंटिंग आवश्यकताओं के लिए आपका भरोसेमंद साथी।",
+    rightsReserved: "सर्वाधिकार सुरक्षित।",
+    callUs: "हमें कॉल करें",
+    emailUs: "हमें ईमेल करें",
+    visitUs: "हमसे मिलें",
+    location: "जहानाबाद, बिहार",
+    fastDelivery: "तेज़ डिलीवरी",
+    qualityWork: "गुणवत्तापूर्ण कार्य",
+    bestPrice: "सबसे अच्छी कीमत",
+    happyClients: "खुश ग्राहक",
+    projectsCompleted: "प्रोजेक्ट्स पूरे हुए",
+    yearsExperience: "वर्षों का अनुभव",
+    gallery: "गैलरी",
+    close: "बंद करें",
+    send: "भेजें",
+    typeMessage: "संदेश टाइप करें...",
+    aiAssistant: "AI सहायक",
+    clearChat: "चैट साफ़ करें",
+    darkMode: "डार्क मोड",
+    lightMode: "लाइट मोड",
+    language: "भाषा",
+    hindi: "हिंदी",
+    english: "अंग्रेजी",
+    voiceInput: "वॉयस इनपुट",
+    stopVoice: "वॉयस बंद करें",
+    uploadImage: "छवि अपलोड करें",
+    calculating: "गणना की जा रही है...",
+    totalPrice: "कुल कीमत",
+    pricePerSqft: "प्रति वर्ग फुट कीमत",
+    quantity: "मात्रा",
+    size: "आकार",
+    topOffer: "विशेष ऑफर: अपने पहले ऑर्डर पर 10% की छूट पाएं! कोड: UTTAM10",
+    help: "सहायता",
+    faq: "सामान्य प्रश्न",
+    share: "शेयर करें",
+    whatsapp: "व्हाट्सएप",
+    call: "कॉल",
+    website: "वेबसाइट",
+    privacyPolicy: "गोपनीयता नीति",
+    termsOfService: "सेवा की शर्तें",
+    proprietor: "मालिक",
+    address: "पता",
+    openingHours: "खुलने का समय",
+    monSat: "सोम - शनि",
+    sunday: "रविवार",
+    whatsappUs: "व्हाट्सएप करें",
+    ourStory: "हमारी कहानी",
+    expertPrintingSolutions: "2015 से विशेषज्ञ प्रिंटिंग समाधान",
+    aboutDesc1: "9 वर्षों से अधिक की उत्कृष्टता के साथ, हम जहानाबाद में गुणवत्तापूर्ण प्रिंटिंग की धड़कन रहे हैं।",
+    aboutDesc2: "हम अत्याधुनिक फ्लेक्स, विनाइल और प्रचार प्रिंटिंग में विशेषज्ञ हैं।",
+    contactDesc: "अपने ब्रांड को नई ऊंचाइयों पर ले जाने के लिए तैयार हैं? हमसे संपर्क करें।",
+    fullName: "पूरा नाम",
+    emailAddress: "ईमेल पता",
+    serviceNeeded: "आवश्यक सेवा",
+    sendMessage: "संदेश भेजें",
+    footerDesc: "आपकी सभी प्रिंटिंग आवश्यकताओं के लिए आपका अंतिम गंतव्य।",
+    quickLinks: "त्वरित लिंक",
+    home: "होम",
+    services: "सेवाएं",
+    about: "हमारे बारे में",
+    contact: "संपर्क करें",
+    workingHours: "कार्य के घंटे",
+    serviceDetails: "विवरण देखें",
+    startChattingNow: "अभी चैट शुरू करें",
+    aiPoweredSupport: "एआई-संचालित सहायता",
+    chatWithOurAIAssistant: "हमारे एआई सहायक के साथ चैट करें",
+    aiAssistantDesc: "कीमतों या सामग्री के बारे में त्वरित उत्तर चाहिए? हमारा एआई 24/7 यहां है।",
+    fullScreenMode: "फुल स्क्रीन मोड",
+    featuredWork: "चुनिंदा कार्य",
+    priceEstimator: "कीमत अनुमानक",
+    off: "छूट",
+    servicesSubtitle: "हम आपकी सभी व्यावसायिक और व्यक्तिगत आवश्यकताओं को पूरा करने के लिए उच्च गुणवत्ता वाली प्रिंटिंग सेवाओं की एक विस्तृत श्रृंखला प्रदान करते हैं।",
+    chatOnWhatsApp: "व्हाट्सएप पर चैट करें",
+    addToCart: "कार्ट में जोड़ें",
+    cart: "कार्ट",
+    emptyCart: "आपकी कार्ट खाली है",
+    total: "कुल",
+    checkout: "चेकआउट",
+    sale: "सेल",
+    items: "आइटम",
+    item: "आइटम",
+    removedFromCart: "कार्ट से हटाया गया",
+    addedToCart: "कार्ट में जोड़ा गया"
+  }
+};
 
 const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, onClose: () => void, isStandalone?: boolean }) => {
   const [language, setLanguage] = useState<'en' | 'hi'>(() => {
@@ -78,7 +302,7 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
     }
   });
   const [showClearConfirm, setShowClearConfirm] = useState(false);
-  const [messages, setMessages] = useState<{ role: 'user' | 'bot', text: string }[]>(() => {
+  const [messages, setMessages] = useState<{ role: 'user' | 'bot', text: string, image?: string }[]>(() => {
     try {
       const saved = localStorage.getItem('uttam_chat_history');
       if (saved) return JSON.parse(saved);
@@ -96,6 +320,7 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
     ];
   });
   const [input, setInput] = useState("");
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
@@ -110,13 +335,19 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
+      recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = language === 'hi' ? 'hi-IN' : 'en-IN';
 
       recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
         setInput(transcript);
-        setIsListening(false);
+        if (event.results[event.results.length - 1].isFinal) {
+          setIsListening(false);
+          recognitionRef.current?.stop();
+        }
       };
 
       recognitionRef.current.onerror = (event: any) => {
@@ -133,41 +364,46 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
   const toggleListening = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert(language === 'hi' ? "आपका ब्राउज़र बोलने की सुविधा का समर्थन नहीं करता है।" : "Your browser does not support voice input.");
+      console.warn("Speech recognition not supported in this browser.");
       return;
     }
 
     if (isListening) {
       recognitionRef.current?.stop();
-      setIsListening(false);
     } else {
+      if (!recognitionRef.current) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = true;
+
+        recognitionRef.current.onresult = (event: any) => {
+          let transcript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            transcript += event.results[i][0].transcript;
+          }
+          setInput(transcript);
+          if (event.results[event.results.length - 1].isFinal) {
+            setIsListening(false);
+            recognitionRef.current?.stop();
+          }
+        };
+
+        recognitionRef.current.onerror = (event: any) => {
+          console.error("Speech recognition error:", event.error);
+          setIsListening(false);
+          if (event.error === 'not-allowed') {
+            console.warn("Microphone access denied.");
+          }
+        };
+
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
+      
+      recognitionRef.current.lang = language === 'hi' ? 'hi-IN' : 'en-IN';
+      
       try {
-        if (!recognitionRef.current) {
-          recognitionRef.current = new SpeechRecognition();
-          recognitionRef.current.continuous = false;
-          recognitionRef.current.interimResults = false;
-          recognitionRef.current.lang = language === 'hi' ? 'hi-IN' : 'en-IN';
-
-          recognitionRef.current.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setInput(transcript);
-            setIsListening(false);
-          };
-
-          recognitionRef.current.onerror = (event: any) => {
-            console.error("Speech recognition error:", event.error);
-            setIsListening(false);
-            if (event.error === 'not-allowed') {
-              alert(language === 'hi' ? "कृपया माइक्रोफ़ोन की अनुमति दें।" : "Please allow microphone access.");
-            }
-          };
-
-          recognitionRef.current.onend = () => {
-            setIsListening(false);
-          };
-        }
-        
-        recognitionRef.current.lang = language === 'hi' ? 'hi-IN' : 'en-IN';
         recognitionRef.current.start();
         setIsListening(true);
       } catch (error) {
@@ -213,82 +449,166 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
 
   useEffect(() => {
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.error("GEMINI_API_KEY is missing");
+    if (!apiKey || (!isOpen && !isStandalone)) {
       return;
     }
-    const ai = new GoogleGenAI({ apiKey });
-    chatRef.current = ai.chats.create({
-      model: "gemini-3.1-pro-preview",
-      config: {
-        systemInstruction: `You are the AI Assistant for 'Uttam Flex Printing', located in Jehanabad, Bihar. 
-        Your goal is to help customers with their printing queries.
-        
-        LANGUAGE: 
-        - Current Language: ${language === 'hi' ? 'Hindi' : 'English'}.
-        - You MUST respond ONLY in ${language === 'hi' ? 'Hindi' : 'English'}.
-        
-        CRITICAL: BE EXTREMELY FAST AND CONCISE. Answer in a snap. Use short sentences.
-        
-        MEMORY & CONTEXT:
-        - You MUST recall and refer to previous parts of the current conversation to provide relevant responses.
-        - If a user asks a follow-up question, use the previous context to answer accurately.
-        
-        BUSINESS INFO:
-        - Name: Uttam Flex Printing
-        - Proprietor: Mr. Ravi Kumar
-        - Tagline: Your Solutions, Your Moto.
-        - Location: Jehanabad, Bihar
-        - Phone: +91 7481068602
-        
-        AVAILABLE SERVICES:
-        ${JSON.stringify(services.map(s => ({ title: s.title, description: s.description })))}
-        
-        MATERIAL GUIDE:
-        ${JSON.stringify([
-          { name: "Flex", description: "Durable for outdoor banners, cost-effective." },
-          { name: "Vinyl", description: "Waterproof, high-quality finish, great for stickers." },
-          { name: "Sunboard", description: "Rigid, ideal for indoor displays and signs." },
-        ])}
-        
-        INSTRUCTIONS:
-        - Use the AVAILABLE SERVICES and MATERIAL GUIDE to answer customer questions accurately.
-        - If a user asks about a service or material not listed, politely inform them that you can help with other printing needs and ask for more details.
-        - If asked about pricing or specific turnaround times, provide general information based on the business context and suggest contacting the proprietor for specific quotes.
-        - Flex Printing: ₹12 per sq. ft.
-        - Vinyl Printing: ₹25 per sq. ft.
-        - Glow Sign Boards: ₹150 per sq. ft.
-        - Banners & Posters: ₹15 per sq. ft.
-        - Visiting Cards, ID Cards, T-shirt Printing, Standees, Mugs, etc.
-        
-        TURNAROUND TIMES:
-        - Standard Flex Printing: 2-4 hours (for simple designs)
-        - Vinyl Printing & Glow Sign Boards: 12-24 hours
-        - Complex/Bulk Projects: 48-72 hours
-        - Visiting Cards, ID Cards, T-shirts: 24 hours
-        
-        GUIDELINES:
-        - Be professional, friendly, and extremely concise.
-        - Answer in English or Hindi as per user preference.
-        - If the user is asking about printing services, prices, or orders, encourage them to visit the shop or contact via WhatsApp. If the user is asking general knowledge questions, do not push for orders.
-        - MAGIC DESIGN STORY: If the user asks for a "Magic Design Story", you MUST generate a creative design concept for their banner AND a short, culturally relevant story or blessing that can be printed as a QR code on the banner.`,
-      },
-    });
-  }, [language]);
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      chatRef.current = ai.chats.create({
+        model: "gemini-3-flash-preview",
+        config: {
+          systemInstruction: `You are the AI Assistant for 'Uttam Flex Printing', located in Jehanabad, Bihar. 
+          Your goal is to help customers with their printing queries.
+          
+          LANGUAGE: 
+          - Current Language: ${language === 'hi' ? 'Hindi' : 'English'}.
+          - You MUST respond ONLY in ${language === 'hi' ? 'Hindi' : 'English'}.
+          
+          CRITICAL: BE EXTREMELY FAST AND CONCISE. Answer in a snap. Use short sentences.
+          
+          MEMORY & CONTEXT:
+          - You MUST recall and refer to previous parts of the current conversation to provide relevant responses.
+          - If a user asks a follow-up question, use the previous context to answer accurately.
+          
+          BUSINESS INFO:
+          - Name: Uttam Flex Printing
+          - Proprietor: Mr. Ravi Kumar
+          - Tagline: Your Solutions, Your Moto.
+          - Location: Jehanabad, Bihar
+          - Phone: +91 7481068602
+          
+          AVAILABLE SERVICES:
+          ${JSON.stringify(services.map(s => ({ title: s.title, description: s.description })))}
+          
+          MATERIAL GUIDE:
+          ${JSON.stringify([
+            { name: "Flex", description: "Durable for outdoor banners, cost-effective." },
+            { name: "Vinyl", description: "Waterproof, high-quality finish, great for stickers." },
+            { name: "Sunboard", description: "Rigid, ideal for indoor displays and signs." },
+          ])}
+          
+          INSTRUCTIONS:
+          - Use the AVAILABLE SERVICES and MATERIAL GUIDE to answer customer questions accurately.
+          - If a user asks about a service or material not listed, politely inform them that you can help with other printing needs and ask for more details.
+          - If asked about pricing or specific turnaround times, provide general information based on the business context and suggest contacting the proprietor for specific quotes.
+          - Flex Printing: ₹12 per sq. ft.
+          - Vinyl Printing: ₹25 per sq. ft.
+          - Glow Sign Boards: ₹150 per sq. ft.
+          - Banners & Posters: ₹15 per sq. ft.
+          - Visiting Cards, ID Cards, T-shirt Printing, Standees, Mugs, etc.
+          
+          TURNAROUND TIMES:
+          - Standard Flex Printing: 2-4 hours (for simple designs)
+          - Vinyl Printing & Glow Sign Boards: 12-24 hours
+          - Complex/Bulk Projects: 48-72 hours
+          - Visiting Cards, ID Cards, T-shirts: 24 hours
+          
+          GUIDELINES:
+          - Be professional, friendly, and extremely concise.
+          - Answer in English or Hindi as per user preference.
+          - If the user is asking about printing services, prices, or orders, encourage them to visit the shop or contact via WhatsApp. If the user is asking general knowledge questions, do not push for orders.
+          - MAGIC DESIGN STORY: If the user asks for a "Magic Design Story", you MUST generate a creative design concept for their banner AND a short, culturally relevant story or blessing that can be printed as a QR code on the banner.`,
+        }
+      });
+    } catch (err) {
+      console.error("Failed to initialize Gemini AI:", err);
+    }
+  }, [language, isOpen, isStandalone]);
+
+  if (!isOpen && !isStandalone) return null;
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && !uploadedImage) || isLoading) return;
 
     const userMessage = input.trim();
+    const currentImage = uploadedImage;
     setInput("");
-    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+    setUploadedImage(null);
+    setMessages(prev => [...prev, { role: 'user', text: userMessage, image: currentImage || undefined }]);
     setIsLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      if (!chatRef.current) {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+          throw new Error("GEMINI_API_KEY is missing");
+        }
+        const ai = new GoogleGenAI({ apiKey });
+        chatRef.current = ai.chats.create({
+          model: "gemini-3-flash-preview",
+          config: {
+            systemInstruction: `You are the AI Assistant for 'Uttam Flex Printing', located in Jehanabad, Bihar. 
+            Your goal is to help customers with their printing queries.
+            
+            LANGUAGE: 
+            - Current Language: ${language === 'hi' ? 'Hindi' : 'English'}.
+            - You MUST respond ONLY in ${language === 'hi' ? 'Hindi' : 'English'}.
+            
+            CRITICAL: BE EXTREMELY FAST AND CONCISE. Answer in a snap. Use short sentences.
+            
+            MEMORY & CONTEXT:
+            - You MUST recall and refer to previous parts of the current conversation to provide relevant responses.
+            - If a user asks a follow-up question, use the previous context to answer accurately.
+            
+            BUSINESS INFO:
+            - Name: Uttam Flex Printing
+            - Proprietor: Mr. Ravi Kumar
+            - Tagline: Your Solutions, Your Moto.
+            - Location: Jehanabad, Bihar
+            - Phone: +91 7481068602
+            
+            AVAILABLE SERVICES:
+            ${JSON.stringify(services.map(s => ({ title: s.title, description: s.description })))}
+            
+            MATERIAL GUIDE:
+            ${JSON.stringify([
+              { name: "Flex", description: "Durable for outdoor banners, cost-effective." },
+              { name: "Vinyl", description: "Waterproof, high-quality finish, great for stickers." },
+              { name: "Sunboard", description: "Rigid, ideal for indoor displays and signs." },
+            ])}
+            
+            INSTRUCTIONS:
+            - Use the AVAILABLE SERVICES and MATERIAL GUIDE to answer customer questions accurately.
+            - If a user asks about a service or material not listed, politely inform them that you can help with other printing needs and ask for more details.
+            - If asked about pricing or specific turnaround times, provide general information based on the business context and suggest contacting the proprietor for specific quotes.
+            - Flex Printing: ₹12 per sq. ft.
+            - Vinyl Printing: ₹25 per sq. ft.
+            - Glow Sign Boards: ₹150 per sq. ft.
+            - Banners & Posters: ₹15 per sq. ft.
+            - Visiting Cards, ID Cards, T-shirt Printing, Standees, Mugs, etc.
+            
+            TURNAROUND TIMES:
+            - Standard Flex Printing: 2-4 hours (for simple designs)
+            - Vinyl Printing & Glow Sign Boards: 12-24 hours
+            - Complex/Bulk Projects: 48-72 hours
+            - Visiting Cards, ID Cards, T-shirts: 24 hours
+            
+            GUIDELINES:
+            - Be professional, friendly, and extremely concise.
+            - Answer in English or Hindi as per user preference.
+            - If the user is asking about printing services, prices, or orders, encourage them to visit the shop or contact via WhatsApp. If the user is asking general knowledge questions, do not push for orders.
+            - MAGIC DESIGN STORY: If the user asks for a "Magic Design Story", you MUST generate a creative design concept for their banner AND a short, culturally relevant story or blessing that can be printed as a QR code on the banner.`,
+          },
+        });
+      }
       
-      const stream = await chatRef.current.sendMessageStream({ message: userMessage });
+      const parts: any[] = [{ text: userMessage || "Describe this image relative to printing services." }];
+      
+      if (currentImage) {
+        const base64Data = currentImage.split(',')[1];
+        const mimeType = currentImage.split(';')[0].split(':')[1];
+        parts.push({
+          inlineData: {
+            data: base64Data,
+            mimeType: mimeType
+          }
+        });
+      }
+
+      const stream = await chatRef.current.sendMessageStream({ 
+        message: currentImage ? { parts } : userMessage 
+      });
       stopRef.current = false;
 
       let botResponse = "";
@@ -327,17 +647,12 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={isStandalone ? { opacity: 0 } : { opacity: 0, scale: 0.9, y: 20 }}
-          animate={isStandalone ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
-          exit={isStandalone ? { opacity: 0 } : { opacity: 0, scale: 0.9, y: 20 }}
-          className={isStandalone 
-            ? `w-full h-[100dvh] ${darkMode ? 'bg-slate-900' : 'bg-white'} flex flex-col` 
-            : `fixed bottom-28 right-8 z-[100] w-80 md:w-96 ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} rounded-3xl shadow-2xl border overflow-hidden flex flex-col h-[500px]`
-          }
-        >
+    <div
+      className={isStandalone 
+        ? `w-full h-[100dvh] ${darkMode ? 'bg-slate-900' : 'bg-white'} flex flex-col` 
+        : `fixed bottom-24 right-4 sm:right-8 z-[100] w-[calc(100%-32px)] sm:w-[450px] md:w-[480px] ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} rounded-3xl shadow-2xl border overflow-hidden flex flex-col h-[600px] max-h-[calc(100dvh-110px)]`
+      }
+    >
           {/* Header */}
           <div className={`${darkMode ? 'bg-zinc-800' : 'bg-zinc-900'} p-4 text-white flex justify-between items-center shrink-0`}>
             <div className="flex items-center gap-3">
@@ -385,7 +700,7 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
                 <button 
                   onClick={() => setShowClearConfirm(!showClearConfirm)} 
                   title="Clear Chat History"
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium ${showClearConfirm ? 'bg-red-500 text-white' : 'hover:bg-white/10 text-white/90 hover:text-white'}`}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium ${showClearConfirm ? 'bg-blue-500 text-white' : 'hover:bg-white/10 text-white/90 hover:text-white'}`}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">{showClearConfirm ? 'Confirm?' : 'Clear'}</span>
@@ -396,7 +711,7 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
                   <div className="absolute top-full right-0 mt-2 z-[110] bg-white rounded-xl shadow-xl border border-slate-200 p-2 flex flex-col gap-1 min-w-[120px]">
                     <button 
                       onClick={clearChat}
-                      className="w-full text-left px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="w-full text-left px-3 py-2 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     >
                       Yes, Clear All
                     </button>
@@ -411,8 +726,12 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
               </div>
 
               <button 
-                onClick={onClose} 
-                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 rounded-xl transition-all flex items-center gap-2 border border-red-400 shadow-lg shadow-red-900/20"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onClose();
+                }} 
+                className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 rounded-xl transition-all flex items-center gap-2 border border-blue-400 shadow-lg shadow-blue-900/20"
                 title="Close Chat"
               >
                 <span className="hidden sm:inline font-bold text-xs uppercase tracking-wider">Close</span>
@@ -429,6 +748,11 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
             >
               {messages.map((m, idx) => (
                 <div key={idx} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+                  {m.image && (
+                    <div className="max-w-[85%] mb-2">
+                      <img src={m.image} alt="User upload" className="rounded-2xl shadow-sm border border-slate-200" />
+                    </div>
+                  )}
                   <div className={`max-w-[85%] p-3 rounded-2xl text-sm relative group transition-all duration-300 ${
                     m.role === 'user' 
                       ? 'bg-zinc-900 text-white rounded-tr-none' 
@@ -447,16 +771,16 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
                   <div className="bg-white text-slate-900 p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 flex items-center gap-3">
                     <div className="flex items-center gap-2">
                       <div className="flex gap-1">
-                        <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" />
-                        <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                        <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" />
+                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.4s]" />
                       </div>
                       <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">AI is typing...</span>
                     </div>
                     <button 
                       onClick={handleStop}
                       disabled={isStopping}
-                      className="p-1 px-2 rounded-lg bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 transition-all flex items-center gap-1.5 border border-slate-200"
+                      className="p-1 px-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-500 hover:text-blue-600 transition-all flex items-center gap-1.5 border border-slate-200"
                       title="Stop AI Response"
                     >
                       <Square className="w-2.5 h-2.5 fill-current" />
@@ -496,79 +820,92 @@ const ChatBot = ({ isOpen, onClose, isStandalone = false }: { isOpen: boolean, o
               </div>
             )}
             <form onSubmit={handleSend} className="flex gap-2 items-center">
-              <div className={`flex rounded-xl p-1 border ${darkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-100 border-slate-200'} shrink-0`}>
-                <button 
-                  type="button"
-                  onClick={() => setLanguage('en')}
-                  className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-all ${language === 'en' ? (darkMode ? 'bg-slate-600 text-white' : 'bg-white text-indigo-600 shadow-sm') : (darkMode ? 'text-slate-400' : 'text-slate-500 hover:text-slate-700')}`}
-                >
-                  EN
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => setLanguage('hi')}
-                  className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-all ${language === 'hi' ? (darkMode ? 'bg-slate-600 text-white' : 'bg-white text-indigo-600 shadow-sm') : (darkMode ? 'text-slate-400' : 'text-slate-500 hover:text-slate-700')}`}
-                >
-                  हिं
-                </button>
-              </div>
-              <div className="flex-1 relative">
+              <div className="flex-col w-full gap-2">
+                {uploadedImage && (
+                  <div className="relative w-12 h-12 mb-2">
+                    <img src={uploadedImage} alt="Uploaded" className="w-12 h-12 object-cover rounded-lg" />
+                    <button onClick={() => setUploadedImage(null)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+                <div className="flex-1 relative flex items-center gap-2">
+                <input 
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setUploadedImage(reader.result as string);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label htmlFor="image-upload" className={`p-2 rounded-full cursor-pointer ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-700'}`}>
+                  <Upload className="w-5 h-5" />
+                </label>
                 <input 
                   type="text" 
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    if (isListening) {
+                      recognitionRef.current?.stop();
+                      setIsListening(false);
+                    }
+                  }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.ctrlKey) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
                       handleSend(e as any);
                     }
                   }}
                   aria-label={language === 'hi' ? "चैट इनपुट" : "Chat input"}
                   placeholder={language === 'hi' ? "मुझसे कुछ भी पूछें..." : "Ask me anything..."}
-                  className={`w-full px-4 py-2 pr-10 rounded-xl border-none focus:ring-2 focus:ring-indigo-600 outline-none text-sm ${darkMode ? 'bg-slate-700 text-white placeholder-slate-400' : 'bg-slate-100 text-slate-800 placeholder-slate-500'}`}
+                  className={`w-full px-4 py-2 pr-20 rounded-xl border-none focus:ring-2 focus:ring-blue-600 outline-none text-sm ${darkMode ? 'bg-slate-700 text-white placeholder-slate-400' : 'bg-slate-100 text-slate-800 placeholder-slate-500'}`}
                 />
                 <button
                   type="button"
                   onClick={toggleListening}
                   aria-label={language === 'hi' ? "बोलकर पूछें" : "Voice Input"}
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${
+                  className={`absolute right-12 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${
                     isListening 
                       ? 'bg-red-500 text-white animate-pulse' 
-                      : (darkMode ? 'text-slate-400 hover:text-indigo-400 hover:bg-slate-600' : 'text-slate-400 hover:text-indigo-600 hover:bg-slate-200')
+                      : (darkMode ? 'text-slate-400 hover:text-blue-400 hover:bg-slate-600' : 'text-slate-400 hover:text-blue-600 hover:bg-slate-200')
                   }`}
                 >
                   {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                 </button>
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
               </div>
-              <button 
-                type="submit"
-                disabled={isLoading || !input.trim()}
-                className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 transition-colors disabled:opacity-50 shrink-0"
-              >
-                <Send className="w-5 h-5" />
-              </button>
+            </div>
             </form>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        </div>
+        </div>
   );
 };
 
-const FloatingHelpButton = ({ onOpenChat }: { onOpenChat: () => void }) => {
+const FloatingHelpButton = ({ onOpenChat }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end gap-4">
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
+      {isOpen && (
+          <div
             className="bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 w-72 mb-2"
           >
             <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <HelpCircle className="w-5 h-5 text-indigo-600" />
+              <HelpCircle className="w-5 h-5 text-blue-600" />
               How can we help?
             </h3>
             <div className="space-y-3">
@@ -579,7 +916,7 @@ const FloatingHelpButton = ({ onOpenChat }: { onOpenChat: () => void }) => {
                 }}
                 className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group text-left"
               >
-                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                   <Bot className="w-5 h-5" />
                 </div>
                 <div>
@@ -605,7 +942,7 @@ const FloatingHelpButton = ({ onOpenChat }: { onOpenChat: () => void }) => {
                 href="tel:+917481068602"
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group"
               >
-                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                   <Phone className="w-5 h-5" />
                 </div>
                 <div>
@@ -647,7 +984,7 @@ const FloatingHelpButton = ({ onOpenChat }: { onOpenChat: () => void }) => {
                 }}
                 className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group text-left"
               >
-                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                   <Share2 className="w-5 h-5" />
                 </div>
                 <div>
@@ -656,23 +993,20 @@ const FloatingHelpButton = ({ onOpenChat }: { onOpenChat: () => void }) => {
                 </div>
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
       <div className="flex items-center gap-3">
         {isOpen && (
-          <motion.span 
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
+          <span 
             className="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-xl"
           >
             Close
-          </motion.span>
+          </span>
         )}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
-            isOpen ? 'bg-slate-900 text-white rotate-90' : 'bg-indigo-600 text-white hover:scale-110'
+            isOpen ? 'bg-slate-900 text-white rotate-90' : 'bg-blue-600 text-white hover:scale-110'
           }`}
         >
           {isOpen ? <X className="w-8 h-8" /> : <HelpCircle className="w-8 h-8" />}
@@ -682,7 +1016,7 @@ const FloatingHelpButton = ({ onOpenChat }: { onOpenChat: () => void }) => {
   );
 };
 
-const PriceCalculator = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+const PriceCalculator = ({ isOpen, onClose, setIsChatOpen }: { isOpen: boolean, onClose: () => void, setIsChatOpen: (v: boolean) => void }) => {
   const [service, setService] = useState('flex');
   const [width, setWidth] = useState(10);
   const [height, setHeight] = useState(5);
@@ -716,7 +1050,7 @@ const PriceCalculator = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
             <div className="p-8">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                  <Calculator className="w-6 h-6 text-indigo-600" />
+                  <Calculator className="w-6 h-6 text-blue-600" />
                   Price Estimator
                 </h2>
                 <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
@@ -730,7 +1064,7 @@ const PriceCalculator = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                   <select 
                     value={service}
                     onChange={(e) => setService(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                   >
                     <option value="flex">Flex Printing (₹12/sqft)</option>
                     <option value="vinyl">Vinyl Printing (₹25/sqft)</option>
@@ -746,7 +1080,7 @@ const PriceCalculator = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                       type="number" 
                       value={width}
                       onChange={(e) => setWidth(Number(e.target.value))}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                     />
                   </div>
                   <div>
@@ -755,13 +1089,13 @@ const PriceCalculator = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                       type="number" 
                       value={height}
                       onChange={(e) => setHeight(Number(e.target.value))}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                     />
                   </div>
                 </div>
 
-                <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
-                  <div className="text-indigo-600 text-sm font-bold uppercase tracking-wider mb-1">Estimated Total</div>
+                <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                  <div className="text-blue-600 text-sm font-bold uppercase tracking-wider mb-1">Estimated Total</div>
                   <div className="text-4xl font-black text-slate-900">₹{total.toLocaleString()}</div>
                   <p className="text-slate-500 text-xs mt-2">* This is an estimate. Final price may vary based on design and material quality.</p>
                 </div>
@@ -769,9 +1103,19 @@ const PriceCalculator = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                 <button 
                   onClick={() => {
                     onClose();
+                    setIsChatOpen(true);
+                  }}
+                  className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg mb-4"
+                >
+                  Chat with AI
+                </button>
+
+                <button 
+                  onClick={() => {
+                    onClose();
                     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=Hi, I got an estimate of ₹${total} for a ${width}x${height} ${service} print. I'd like to proceed.`, '_blank');
                   }}
-                  className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                  className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
                 >
                   Order Now via WhatsApp
                 </button>
@@ -808,28 +1152,28 @@ const FAQSection = () => {
   ];
 
   return (
-    <section id="faq" className="py-24 bg-white">
+    <section id="faq" className="py-24 bg-slate-950 text-white border-t border-white/10">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-slate-900 mb-4">Frequently Asked Questions</h2>
-          <p className="text-slate-600">Everything you need to know about our services and process.</p>
+          <h2 className="text-4xl font-bold text-white mb-4">Frequently Asked Questions</h2>
+          <p className="text-slate-400">Everything you need to know about our services and process.</p>
         </div>
 
         <div className="space-y-4">
           {faqs.map((faq, idx) => (
             <div 
               key={idx}
-              className="border border-slate-200 rounded-2xl overflow-hidden transition-all"
+              className="border border-white/10 rounded-2xl overflow-hidden transition-all bg-white/5 backdrop-blur-md"
             >
               <button
                 onClick={() => setActiveIndex(activeIndex === idx ? null : idx)}
-                className="w-full flex items-center justify-between p-6 text-left hover:bg-slate-50 transition-colors"
+                className="w-full flex items-center justify-between p-6 text-left hover:bg-white/5 transition-colors"
               >
-                <span className="font-bold text-slate-900 text-lg">{faq.question}</span>
+                <span className="font-bold text-white text-lg">{faq.question}</span>
                 {activeIndex === idx ? (
-                  <ChevronUp className="w-5 h-5 text-indigo-600" />
+                  <ChevronUp className="w-5 h-5 text-blue-400" />
                 ) : (
-                  <ChevronDown className="w-5 h-5 text-slate-400" />
+                  <ChevronDown className="w-5 h-5 text-slate-500" />
                 )}
               </button>
               <AnimatePresence>
@@ -840,7 +1184,7 @@ const FAQSection = () => {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="p-6 pt-0 text-slate-600 leading-relaxed border-t border-slate-100">
+                    <div className="p-6 pt-0 text-slate-400 leading-relaxed border-t border-white/5">
                       {faq.answer}
                     </div>
                   </motion.div>
@@ -855,29 +1199,13 @@ const FAQSection = () => {
 };
 
 const Logo = ({ scrolled = false, light = false }: { scrolled?: boolean; light?: boolean }) => (
-  <div className="flex items-center gap-2">
-    <div className="relative w-8 h-8 flex items-center justify-center">
-      <div className="absolute w-4 h-4 bg-cyan-400 rounded-full -translate-x-1 -translate-y-1 opacity-90 mix-blend-multiply" />
-      <div className="absolute w-4 h-4 bg-[#c2185b] rounded-full translate-x-1 -translate-y-1 opacity-90 mix-blend-multiply" />
-      <div className="absolute w-4 h-4 bg-yellow-400 rounded-full -translate-x-1 translate-y-1 opacity-90 mix-blend-multiply" />
-      <div className="absolute w-4 h-4 bg-slate-900 rounded-full translate-x-1 translate-y-1 opacity-90 mix-blend-multiply" />
-    </div>
+  <div className={`flex items-center gap-3 px-4 py-2 rounded-2xl transition-all duration-300 ${scrolled ? 'bg-white/5 backdrop-blur-md border border-white/10' : 'bg-transparent'}`}>
     <div className="flex flex-col leading-none">
       <div className="flex items-center gap-1 mb-0.5">
-        <Zap className={`w-2 h-2 ${scrolled ? 'text-indigo-600' : 'text-indigo-400'}`} />
-        <span className={`text-[7px] font-black uppercase tracking-tighter ${scrolled ? 'text-indigo-600' : 'text-indigo-400'}`}>
-          Premium Printing
-        </span>
+        <Zap className="w-2.5 h-2.5 text-blue-500 fill-blue-500" />
+        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white">UTTAM</span>
       </div>
-      <span className={`text-2xl font-black tracking-tighter ${(scrolled || !light) ? 'text-slate-900' : 'text-white'}`}>
-        UTTAM
-      </span>
-      <span className="text-[#c2185b] text-[10px] font-bold tracking-[0.2em] uppercase">
-        FLEX PRINTING
-      </span>
-      <span className={`text-[8px] italic font-medium mt-0.5 ${(scrolled || !light) ? 'text-slate-500' : 'text-white/60'}`}>
-        Your Solutions, Your Moto.
-      </span>
+      <span className="text-xs font-black tracking-tighter text-white">FLEX PRINTING</span>
     </div>
   </div>
 );
@@ -886,128 +1214,212 @@ const services = [
   {
     slug: "flex-printing",
     title: "Flex Printing",
+    price: "₹12/sqft",
+    originalPrice: "₹15/sqft",
+    numericPrice: 12,
+    onSale: false,
+    discount: "0%",
     description: "High-quality large format flex printing for billboards and shop fronts.",
-    longDescription: "Flex Printing service offers durable and vibrant solutions for all your large-scale advertising needs. We use high-grade PVC flex material that is weather-resistant and perfect for outdoor use. Whether it's for shop banners, event backdrops, or massive billboards, the state-of-the-art printing technology ensures crisp images and true-to-life colors that grab attention from a distance.",
+    longDescription: "Our Flex Printing service offers durable and vibrant solutions for all your large-scale advertising needs. We use high-grade PVC flex material that is weather-resistant and perfect for outdoor use.",
     icon: <Printer className="w-6 h-6" />,
-    image: "https://picsum.photos/seed/flex-printing-banner/800/600",
+    image: "https://images.unsplash.com/photo-1612810806563-4cb8265db55f?auto=format&fit=crop&q=80&w=800&h=600",
     category: "Large Format",
-    popularity: 10
+    popularity: 10,
+    variants: [
+      { size: "2x3 ft", price: 72 },
+      { size: "3x4 ft", price: 144 },
+      { size: "4x5 ft", price: 240 },
+      { size: "5x8 ft", price: 480 },
+      { size: "10x10 ft", price: 1200 }
+    ]
   },
   {
-    slug: "vinyl-printing",
-    title: "Vinyl Printing",
-    description: "Premium vinyl printing for windows, walls, and vehicle branding.",
-    longDescription: "Vinyl printing is the perfect choice for high-resolution graphics and long-lasting applications. We offer various types of vinyl, including glossy, matte, and transparent options. Vinyl is ideal for wall decals, window displays, and vehicle wraps. With precision cutting and high-quality adhesive, vinyl prints are easy to apply and resistant to fading, ensuring your brand looks professional for years.",
-    icon: <ImageIcon className="w-6 h-6" />,
-    image: "https://picsum.photos/seed/vinyl-printing-stickers/800/600",
+    slug: "banners",
+    title: "Banner",
+    price: "₹18/sqft",
+    originalPrice: "₹22/sqft",
+    numericPrice: 18,
+    onSale: false,
+    discount: "0%",
+    description: "Eye-catching large scale banners for all your events and promotions.",
+    longDescription: "From small indoor banners to massive outdoor displays, we provide high-impact visual solutions for any occasion. Our banners are made from reinforced vinyl with grommets for easy hanging.",
+    icon: <Flag className="w-6 h-6" />,
+    image: "https://images.unsplash.com/photo-1583321500900-82807e458f3c?auto=format&fit=crop&q=80&w=800&h=600",
     category: "Large Format",
-    popularity: 8
+    popularity: 9,
+    variants: [
+      { size: "2x3 ft", price: 108 },
+      { size: "3x4 ft", price: 216 },
+      { size: "4x5 ft", price: 360 },
+      { size: "5x8 ft", price: 720 }
+    ]
+  },
+  {
+    slug: "posters",
+    title: "Poster",
+    price: "₹15/sqft",
+    originalPrice: "₹20/sqft",
+    numericPrice: 15,
+    onSale: false,
+    discount: "0%",
+    description: "High-quality posters for indoor and outdoor advertising.",
+    longDescription: "Our posters are printed on high-quality photo paper with rich colors. Perfect for sales promotions, movie releases, or educational displays, our prints are designed to stand out.",
+    icon: <ImageIcon className="w-6 h-6" />,
+    image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&q=80&w=800&h=600",
+    category: "Large Format",
+    popularity: 8,
+    variants: [
+      { size: "A4", price: 30 },
+      { size: "A3", price: 60 },
+      { size: "2x3 ft", price: 90 },
+      { size: "3x4 ft", price: 180 }
+    ]
   },
   {
     slug: "visiting-cards",
-    title: "Visiting Cards",
+    title: "Visiting Card",
+    price: "₹250/100pcs",
+    originalPrice: "₹300/100pcs",
+    numericPrice: 250,
+    onSale: false,
+    discount: "0%",
     description: "Professional business cards with premium finishes and textures.",
-    longDescription: "Make a lasting first impression with premium business card printing. We offer a wide range of paper stocks, from standard cardstock to luxury textured papers. Choose from various finishes like matte lamination, spot UV, or gold foiling to add that extra touch of sophistication. The design team can help you create a card that perfectly represents your professional identity.",
+    longDescription: "Make a lasting first impression with our premium business card printing. We offer a wide range of paper stocks and finishes like matte lamination and spot UV.",
     icon: <Contact className="w-6 h-6" />,
-    image: "https://picsum.photos/seed/visiting-cards-design/800/600",
+    image: "https://images.unsplash.com/photo-1593642532400-2682810df593?auto=format&fit=crop&q=80&w=800&h=600",
     category: "Business Essentials",
-    popularity: 9
-  },
-  {
-    slug: "banners-posters",
-    title: "Banners & Posters",
-    description: "Eye-catching large scale banners and posters for all your events.",
-    longDescription: "From small indoor posters to massive outdoor banners, we provide high-impact visual solutions for any occasion. Posters are printed on high-quality photo paper with rich colors, while banners are made from reinforced vinyl with grommets for easy hanging. Perfect for sales promotions, movie releases, or educational displays, the prints are designed to stand out.",
-    icon: <Flag className="w-6 h-6" />,
-    image: "https://picsum.photos/seed/banners-posters-event/800/600",
-    category: "Large Format",
-    popularity: 7
-  },
-  {
-    slug: "print-your-own-design",
-    title: "Print Your Own Design",
-    description: "High-quality printing for your provided designs.",
-    longDescription: "Have a design ready? We offer professional printing services for your custom artwork, logos, or documents. Upload your file, and we'll ensure it's printed with precision, high-quality ink, and premium materials. Whether it's for personal projects, business needs, or creative endeavors, we handle your files with care to deliver stunning results.",
-    icon: <Upload className="w-6 h-6" />,
-    image: "https://picsum.photos/seed/custom-printing-design/800/600",
-    category: "Business Essentials",
-    popularity: 6
-  },
-  {
-    slug: "standees",
-    title: "Standees",
-    description: "Portable and durable roll-up standees for exhibitions and shops.",
-    longDescription: "Roll-up standees are the ultimate portable marketing tool. Lightweight and easy to set up, they come with a durable aluminum base and a high-quality printed graphic. Ideal for trade shows, retail stores, and corporate events, standees provide a professional backdrop that can be transported and reused multiple times.",
-    icon: <Monitor className="w-6 h-6" />,
-    image: "https://picsum.photos/seed/roll-up-standee/800/600",
-    category: "Large Format",
-    popularity: 5
-  },
-  {
-    slug: "invitation-cards",
-    title: "Invitation Cards",
-    description: "Custom designed cards for weddings, parties, and corporate events.",
-    longDescription: "Celebrate your special moments with beautifully crafted invitation cards. We specialize in custom designs for weddings, birthdays, and corporate galas. The printing process includes high-quality cardstock and specialized techniques like embossing and laser cutting. Let us help you set the tone for your event with an invitation that your guests will cherish.",
-    icon: <CreditCard className="w-6 h-6" />,
-    image: "https://picsum.photos/seed/invitation-cards-wedding/800/600",
-    category: "Promotional Materials",
-    popularity: 8
-  },
-  {
-    slug: "id-cards",
-    title: "ID Cards",
-    description: "High-quality PVC ID cards for schools, colleges, and corporate offices.",
-    longDescription: "We provide secure and professional PVC ID card printing for organizations of all sizes. Our cards are durable, tamper-resistant, and can include features like barcodes, QR codes, and magnetic strips. We also offer a variety of accessories like lanyards and card holders to complete your identification system.",
-    icon: <IdCard className="w-6 h-6" />,
-    image: "https://picsum.photos/seed/pvc-id-cards/800/600",
-    category: "Business Essentials",
-    popularity: 7
-  },
-  {
-    slug: "tshirt-printing",
-    title: "T-shirt Printing",
-    description: "Customized T-shirt printing for events, teams, and branding.",
-    longDescription: "Get your brand noticed with our custom T-shirt printing services. We use various methods like screen printing, heat transfer, and sublimation to ensure high-quality, long-lasting prints on a variety of fabrics. Whether it's for promotional giveaways, sports teams, or corporate uniforms, we deliver comfortable and stylish apparel.",
-    icon: <Shirt className="w-6 h-6" />,
-    image: "https://picsum.photos/seed/custom-tshirt-printing/800/600",
-    category: "Promotional Materials",
-    popularity: 9
+    popularity: 9,
+    variants: [
+      { size: "100 pcs", price: 250 },
+      { size: "250 pcs", price: 550 },
+      { size: "500 pcs", price: 1000 }
+    ]
   },
   {
     slug: "glow-sign-boards",
-    title: "Glow Sign Boards",
+    title: "Glow Sign Board",
+    price: "₹180/sqft",
+    originalPrice: "₹200/sqft",
+    numericPrice: 180,
+    onSale: false,
+    discount: "0%",
     description: "Backlit glow sign boards for high visibility during day and night.",
-    longDescription: "Illuminate your brand with our premium glow sign boards. These backlit displays are designed for maximum visibility, making your business stand out even in the dark. We use high-quality LED lighting and durable translucent materials to create signs that are energy-efficient and long-lasting.",
+    longDescription: "Illuminate your brand with our premium glow sign boards. These backlit displays are designed for maximum visibility, making your business stand out even in the dark.",
     icon: <Sun className="w-6 h-6" />,
-    image: "https://picsum.photos/seed/glow-sign-board/800/600",
-    category: "Large Format"
+    image: "https://images.unsplash.com/photo-1563203369-26f2e4a5ccf7?auto=format&fit=crop&q=80&w=800&h=600",
+    category: "Large Format",
+    popularity: 7
   },
   {
-    slug: "canopy",
-    title: "Canopy",
-    description: "Branded promotional canopies for outdoor marketing and events.",
-    longDescription: "Promotional canopies are perfect for outdoor activations and events. They provide shade and protection while serving as a massive branding surface. Easy to assemble and dismantle, canopies are made from high-quality, water-resistant fabric and a sturdy frame, ensuring your brand remains visible in any weather.",
-    icon: <Tent className="w-6 h-6" />,
-    image: "https://picsum.photos/seed/promotional-canopy/800/600",
-    category: "Large Format"
+    slug: "t-shirt-printing",
+    title: "T-Shirt Printing",
+    price: "₹350/piece",
+    originalPrice: "₹450/piece",
+    numericPrice: 350,
+    onSale: false,
+    discount: "0%",
+    description: "Custom T-shirt printing with high-quality vinyl or screen printing.",
+    longDescription: "Personalize your wardrobe or promote your brand with our custom T-shirt printing services. We offer high-quality prints that are durable and soft to the touch.",
+    icon: <Shirt className="w-6 h-6" />,
+    image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&q=80&w=800&h=600",
+    category: "Apparel",
+    popularity: 9,
+    variants: [
+      { size: "S", price: 350 },
+      { size: "M", price: 350 },
+      { size: "L", price: 350 },
+      { size: "XL", price: 350 }
+    ]
   },
   {
-    slug: "sunboard-printing",
-    title: "Sunboard Printing",
-    description: "Direct printing on durable sunboards for indoor and outdoor displays.",
-    longDescription: "Sunboard printing is a versatile solution for indoor signage and displays. We print directly onto high-density foam boards, resulting in a lightweight yet rigid product. Perfect for menu boards, directional signs, and exhibition panels, our sunboard prints are durable and offer a professional finish.",
-    icon: <Layers className="w-6 h-6" />,
-    image: "https://picsum.photos/seed/sunboard-printing-display/800/600",
-    category: "Large Format"
+    slug: "id-cards",
+    title: "ID Card",
+    price: "₹60/piece",
+    originalPrice: "₹80/piece",
+    numericPrice: 60,
+    onSale: false,
+    discount: "0%",
+    description: "Professional PVC ID cards for schools, offices, and events.",
+    longDescription: "Our PVC ID cards are durable, waterproof, and feature high-resolution printing for clear identification. Perfect for corporate, school, or event use.",
+    icon: <IdCard className="w-6 h-6" />,
+    image: "https://images.unsplash.com/photo-1611095773767-116b5420216b?auto=format&fit=crop&q=80&w=800&h=600",
+    category: "Business Essentials",
+    popularity: 8
   },
   {
-    slug: "mug-printing",
-    title: "Mug Printing",
-    description: "Personalized ceramic mugs for gifts and corporate branding.",
-    longDescription: "Custom mug printing is a popular choice for personalized gifts and corporate branding. Sublimation printing is used to ensure vibrant colors that are dishwasher and microwave safe. Choose from standard white mugs, magic mugs, or travel tumblers to showcase your brand or special message.",
+    slug: "mugs",
+    title: "Custom Mug",
+    price: "₹199/piece",
+    originalPrice: "₹250/piece",
+    numericPrice: 199,
+    onSale: false,
+    discount: "0%",
+    description: "Personalized ceramic mugs with vibrant, long-lasting prints.",
+    longDescription: "Make every sip special with our custom-printed ceramic mugs. Perfect for gifts, corporate branding, or personal use, our prints are dishwasher safe and vibrant.",
     icon: <Coffee className="w-6 h-6" />,
-    image: "https://picsum.photos/seed/custom-mug-printing/800/600",
-    category: "Promotional Materials"
+    image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&q=80&w=800&h=600",
+    category: "Gifts",
+    popularity: 7
+  },
+  {
+    slug: "keychains",
+    title: "Custom Keychain",
+    price: "₹50/piece",
+    originalPrice: "₹70/piece",
+    numericPrice: 50,
+    onSale: false,
+    discount: "0%",
+    description: "Acrylic or metal keychains with custom designs.",
+    longDescription: "Durable and stylish keychains perfect for branding or gifts. Available in various shapes and materials.",
+    icon: <Key className="w-6 h-6" />,
+    image: "https://images.unsplash.com/photo-1595763517918-7711343c4423?auto=format&fit=crop&q=80&w=800&h=600",
+    category: "Gifts",
+    popularity: 6
+  },
+  {
+    slug: "stickers",
+    title: "Custom Stickers",
+    price: "₹10/piece",
+    originalPrice: "₹15/piece",
+    numericPrice: 10,
+    onSale: false,
+    discount: "0%",
+    description: "High-quality vinyl stickers for branding or personal use.",
+    longDescription: "Waterproof and vibrant vinyl stickers. Perfect for laptops, bottles, or promotional giveaways.",
+    icon: <StickyNote className="w-6 h-6" />,
+    image: "https://images.unsplash.com/photo-1572676990675-01e915152865?auto=format&fit=crop&q=80&w=800&h=600",
+    category: "Business Essentials",
+    popularity: 8
+  },
+  {
+    slug: "standee",
+    title: "Standee",
+    price: "₹850/piece",
+    originalPrice: "₹1000/piece",
+    numericPrice: 850,
+    onSale: false,
+    discount: "0%",
+    description: "Roll-up standees for exhibitions and shop displays.",
+    longDescription: "Portable and professional roll-up standees. Easy to carry and set up, perfect for events, showrooms, and exhibitions.",
+    icon: <Flag className="w-6 h-6" />,
+    image: "https://images.unsplash.com/photo-1594498653385-d5172c532c00?auto=format&fit=crop&q=80&w=800&h=600",
+    category: "Large Format",
+    popularity: 8
+  },
+  {
+    slug: "brochures",
+    title: "Brochures",
+    price: "₹8/piece",
+    originalPrice: "₹10/piece",
+    numericPrice: 8,
+    onSale: false,
+    discount: "0%",
+    description: "Professional brochures to showcase your business.",
+    longDescription: "High-quality glossy or matte brochures to effectively communicate your business information.",
+    icon: <BookOpen className="w-6 h-6" />,
+    image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&q=80&w=800&h=600",
+    category: "Business Essentials",
+    popularity: 7
   }
 ];
 
@@ -1017,36 +1429,84 @@ const stats = [
   { label: "Projects Done", value: "12000+", icon: <CheckCircle2 className="w-5 h-5" /> },
 ];
 
+const themes = [
+  { primaryColor: '#2563eb', fontFamily: 'Inter, sans-serif' }, // Blue, Inter
+  { primaryColor: '#dc2626', fontFamily: 'Outfit, sans-serif' }, // Red, Outfit
+  { primaryColor: '#059669', fontFamily: 'Space Grotesk, sans-serif' }, // Green, Space Grotesk
+];
+
+const getDailyPrice = (basePrice: number) => {
+  const day = new Date().getDate();
+  const factor = 1 + (Math.sin(day) * 0.1); // +/- 10% fluctuation
+  return Math.round(basePrice * factor);
+};
+
+const getDynamicServices = () => {
+  return services.map(service => ({
+    ...service,
+    numericPrice: getDailyPrice(service.numericPrice),
+    price: `₹${getDailyPrice(service.numericPrice)}/${service.price.split('/')[1] || 'piece'}`
+  }));
+};
+
 const ServiceDetail = () => {
   const { slug } = useParams();
   const { pathname } = useLocation();
-  const service = services.find(s => s.slug === slug);
+  const service = getDynamicServices().find(s => s.slug === slug);
+  const [selectedVariant, setSelectedVariant] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'details' | 'process' | 'faq'>('details');
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [pathname]);
+    if (service?.variants) {
+      setSelectedVariant(service.variants[0]);
+    }
+  }, [pathname, service]);
 
   if (!service) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <h2 className="text-3xl font-bold mb-4">Service Not Found</h2>
-        <Link to="/" className="text-indigo-600 font-bold flex items-center gap-2">
-          <ArrowLeft className="w-5 h-5" /> Back to Home
-        </Link>
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-slate-50">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <div className="w-24 h-24 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Printer className="w-12 h-12 text-slate-400" />
+          </div>
+          <h2 className="text-3xl font-bold mb-4 text-slate-900">Service Not Found</h2>
+          <p className="text-slate-600 mb-8">The service you are looking for might have been moved or deleted.</p>
+          <Link to="/" className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
+            <ArrowLeft className="w-5 h-5" /> Back to Home
+          </Link>
+        </motion.div>
       </div>
     );
   }
 
+  const currentPrice = selectedVariant ? selectedVariant.price : service.numericPrice;
+
+  const features = [
+    { icon: <CheckCircle2 className="w-5 h-5 text-green-500" />, title: "Premium Quality", desc: "We use only the best materials for a professional finish." },
+    { icon: <Clock className="w-5 h-5 text-blue-500" />, title: "Fast Turnaround", desc: "Most orders are ready within 24-48 hours." },
+    { icon: <ShieldCheck className="w-5 h-5 text-purple-500" />, title: "Durability", desc: "Weather-resistant and long-lasting print quality." },
+    { icon: <Zap className="w-5 h-5 text-yellow-500" />, title: "Vibrant Colors", desc: "High-resolution printing with rich, accurate colors." }
+  ];
+
+  const relatedServices = getDynamicServices()
+    .filter(s => s.slug !== slug && s.category === service.category)
+    .slice(0, 3);
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation (Simplified for Detail Page) */}
-      <nav className="fixed w-full z-50 bg-white/90 backdrop-blur-md shadow-sm py-3">
+    <div className="min-h-screen bg-slate-50">
+      {/* Navigation */}
+      <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
-            <Link to="/">
+          <div className="flex justify-between items-center h-20">
+            <Link to="/" className="hover:opacity-80 transition-opacity">
               <Logo scrolled={true} />
             </Link>
-            <Link to="/" className="text-sm font-bold text-slate-600 hover:text-indigo-600 flex items-center gap-2">
+            <Link to="/" className="text-sm font-bold text-slate-600 hover:text-blue-600 flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-black/5 transition-all">
               <ArrowLeft className="w-4 h-4" /> Back to Home
             </Link>
           </div>
@@ -1055,70 +1515,267 @@ const ServiceDetail = () => {
 
       <main className="pt-32 pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          {/* Hero Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start mb-24">
             <motion.div 
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="relative"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="relative group"
             >
-              <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl aspect-[4/3]">
+              <div className="relative z-10 rounded-[2.5rem] overflow-hidden shadow-2xl aspect-[4/5] lg:aspect-square border-8 border-white">
                 <img 
                   src={service.image} 
                   alt={service.title} 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  referrerPolicy="no-referrer"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </div>
-              <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-indigo-600 rounded-3xl -z-0" />
+              <div className="absolute -bottom-8 -right-8 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl -z-0 animate-pulse" />
+              <div className="absolute -top-8 -left-8 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl -z-0 animate-pulse delay-700" />
+              
+              {/* Floating Badge */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="absolute -bottom-6 -left-6 z-20 bg-white p-6 rounded-3xl shadow-xl border border-slate-100 hidden md:block"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-green-600">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Quality Guarantee</div>
+                    <div className="text-lg font-bold text-slate-900">100% Satisfaction</div>
+                  </div>
+                </div>
+              </motion.div>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 text-indigo-600 text-sm font-bold mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-600 text-sm font-bold mb-8 border border-blue-100">
                 {service.icon}
                 {service.category}
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">{service.title}</h1>
-              <p className="text-xl text-slate-600 mb-8 leading-relaxed">
+              <h1 className="text-5xl md:text-6xl font-display font-bold text-slate-950 mb-8 tracking-tight leading-tight">
+                {service.title}
+              </h1>
+              <p className="text-xl text-slate-600 mb-10 leading-relaxed font-medium">
                 {service.longDescription}
               </p>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
-                <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
-                  <h4 className="font-bold text-slate-900 mb-2">High Quality</h4>
-                  <p className="text-sm text-slate-600">Premium materials and state-of-the-art machinery.</p>
-                </div>
-                <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
-                  <h4 className="font-bold text-slate-900 mb-2">Fast Delivery</h4>
-                  <p className="text-sm text-slate-600">Quick turnaround times for all your projects.</p>
-                </div>
+
+              {/* Tabs */}
+              <div className="flex gap-8 border-b border-slate-200 mb-10">
+                {(['details', 'process', 'faq'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${
+                      activeTab === tab ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                  >
+                    {tab}
+                    {activeTab === tab && (
+                      <motion.div 
+                        layoutId="activeTab"
+                        className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-full"
+                      />
+                    )}
+                  </button>
+                ))}
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link 
-                  to="/#contact"
-                  className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all text-center"
-                >
-                  Get a Quote
-                </Link>
-                <Link 
-                  to="/"
-                  className="bg-slate-100 text-slate-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-200 transition-all text-center"
-                >
-                  View All Services
-                </Link>
-              </div>
+              <AnimatePresence mode="wait">
+                {activeTab === 'details' && (
+                  <motion.div
+                    key="details"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-10"
+                  >
+                    {service.variants && (
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                          <Maximize2 className="w-4 h-4 text-blue-600" />
+                          Select Configuration
+                        </h4>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                          {service.variants.map((v: any, index: number) => (
+                            <button
+                              key={v.size || index}
+                              onClick={() => setSelectedVariant(v)}
+                              className={`p-5 rounded-2xl border-2 transition-all text-left group ${
+                                selectedVariant?.size === v.size 
+                                  ? 'border-blue-600 bg-blue-50/50 ring-4 ring-blue-600/5' 
+                                  : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'
+                              }`}
+                            >
+                              <span className={`block font-bold text-lg mb-1 transition-colors ${
+                                selectedVariant?.size === v.size ? 'text-blue-600' : 'text-slate-900'
+                              }`}>
+                                {v.size}
+                              </span>
+                              <span className="text-sm font-medium text-slate-500">₹{v.price}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row items-center gap-6 p-8 rounded-[2rem] bg-slate-900 text-white shadow-2xl shadow-slate-900/20 relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
+                      <div className="flex-1">
+                        <span className="text-slate-400 text-sm font-bold uppercase tracking-widest block mb-2">Estimated Price</span>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-5xl font-black text-white">₹{currentPrice}</span>
+                          <span className="text-slate-400 line-through text-lg">₹{Math.round(currentPrice * 1.2)}</span>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => window.open(`https://wa.me/917481068602?text=I%20want%20to%20order%20${service.title}${selectedVariant ? ` (${selectedVariant.size})` : ''}`, '_blank')}
+                        className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3 active:scale-95"
+                      >
+                        <MessageSquare className="w-6 h-6" />
+                        Order Now
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {activeTab === 'process' && (
+                  <motion.div
+                    key="process"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-8"
+                  >
+                    {[
+                      { step: "01", title: "Design Selection", desc: "Choose from our templates or provide your own custom design." },
+                      { step: "02", title: "Material Choice", desc: "Select the best material and finish for your specific needs." },
+                      { step: "03", title: "Professional Printing", desc: "We use high-end machinery to ensure the best print quality." },
+                      { step: "04", title: "Quality Check & Delivery", desc: "Every item is inspected before being shipped or picked up." }
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex gap-6 items-start group">
+                        <div className="text-4xl font-black text-slate-100 group-hover:text-blue-100 transition-colors duration-300">{item.step}</div>
+                        <div>
+                          <h4 className="text-xl font-bold text-slate-900 mb-2">{item.title}</h4>
+                          <p className="text-slate-600 leading-relaxed">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+
+                {activeTab === 'faq' && (
+                  <motion.div
+                    key="faq"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-4"
+                  >
+                    {[
+                      { q: "How long does it take?", a: "Standard production time is 24-48 hours depending on order size." },
+                      { q: "Do you provide design services?", a: "Yes, our expert designers can help create the perfect design for you." },
+                      { q: "Is there a minimum order quantity?", a: "Most items have no minimum, but visiting cards start at 100 pieces." }
+                    ].map((item, idx) => (
+                      <div key={idx} className="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm">
+                        <h4 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                          <HelpCircle className="w-4 h-4 text-blue-600" />
+                          {item.q}
+                        </h4>
+                        <p className="text-slate-600 text-sm leading-relaxed">{item.a}</p>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           </div>
+
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-32">
+            {features.map((feature, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/40 hover:shadow-blue-600/5 transition-all group"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                  {feature.icon}
+                </div>
+                <h4 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h4>
+                <p className="text-slate-600 text-sm leading-relaxed">{feature.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Related Services */}
+          {relatedServices.length > 0 && (
+            <div className="mb-24">
+              <div className="flex items-end justify-between mb-12">
+                <div>
+                  <div className="text-blue-600 font-bold text-sm uppercase tracking-widest mb-4">Explore More</div>
+                  <h2 className="text-4xl font-display font-bold text-slate-950 tracking-tight">Related Services</h2>
+                </div>
+                <Link to="/" className="text-blue-600 font-bold hover:underline flex items-center gap-2">
+                  View All <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {relatedServices.map((s, idx) => (
+                  <Link 
+                    key={idx} 
+                    to={`/services/${s.slug}`}
+                    className="group bg-white rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/40 border border-slate-100 hover:-translate-y-2 transition-all duration-500"
+                  >
+                    <div className="aspect-[16/10] overflow-hidden">
+                      <img 
+                        src={s.image} 
+                        alt={s.title} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                    <div className="p-8">
+                      <div className="flex items-center gap-2 text-blue-600 text-xs font-bold uppercase tracking-widest mb-4">
+                        {s.icon}
+                        {s.category}
+                      </div>
+                      <h3 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">{s.title}</h3>
+                      <p className="text-slate-500 text-sm line-clamp-2">{s.description}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
-      {/* Footer (Simplified) */}
-      <footer className="bg-slate-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 text-center">
+      {/* Footer */}
+      <footer className="bg-slate-950 text-white py-20 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-600/50 to-transparent" />
+        <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
           <Logo light={true} />
-          <p className="mt-6 text-slate-400 text-sm">© 2026 Uttam Flex Printing. All rights reserved.</p>
+          <div className="mt-12 pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-8 text-slate-500 text-sm">
+            <p>© 2026 Uttam Flex Printing. All rights reserved.</p>
+            <div className="flex gap-8">
+              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
@@ -1196,7 +1853,7 @@ const ProjectGalleryModal = ({ project, isOpen, onClose }: { project: any, isOpe
             {/* Sidebar / Thumbnails */}
             <div className="w-full md:w-80 p-8 flex flex-col bg-white overflow-y-auto">
               <div className="mb-8">
-                <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-bold rounded-full uppercase tracking-wider mb-4 inline-block">
+                <span className="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full uppercase tracking-wider mb-4 inline-block">
                   {project.category}
                 </span>
                 <h3 className="text-2xl font-bold text-slate-900 mb-4">{project.title}</h3>
@@ -1213,7 +1870,7 @@ const ProjectGalleryModal = ({ project, isOpen, onClose }: { project: any, isOpe
                       key={idx}
                       onClick={() => setActiveImage(idx)}
                       className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${
-                        activeImage === idx ? "border-indigo-600 scale-95 shadow-inner" : "border-transparent opacity-60 hover:opacity-100"
+                        activeImage === idx ? "border-blue-600 scale-95 shadow-inner" : "border-transparent opacity-60 hover:opacity-100"
                       }`}
                     >
                       <img src={img} alt="Thumbnail" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -1225,7 +1882,7 @@ const ProjectGalleryModal = ({ project, isOpen, onClose }: { project: any, isOpe
               <div className="mt-8 pt-8 border-t border-slate-100">
                 <Link
                   to={`/services/${project.serviceSlug}`}
-                  className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-center hover:bg-indigo-700 transition-all block"
+                  className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-center hover:bg-blue-700 transition-all block"
                 >
                   Service Details
                 </Link>
@@ -1236,122 +1893,6 @@ const ProjectGalleryModal = ({ project, isOpen, onClose }: { project: any, isOpe
       )}
     </AnimatePresence>
   );
-};
-
-const ChatPage = () => {
-  const navigate = useNavigate();
-  return (
-    <div className="h-[100dvh] bg-white overflow-hidden">
-      <ChatBot isOpen={true} onClose={() => navigate(-1)} isStandalone={true} />
-    </div>
-  );
-};
-
-const translations = {
-  en: {
-    home: "Home",
-    services: "Services",
-    aiAssistant: "AI Assistant",
-    about: "About",
-    contact: "Contact",
-    getQuote: "Get a Quote",
-    heroTitle: "Bringing Your Vision to Large Format Life.",
-    heroSubtitle: "Uttam Flex Printing delivers high-quality, durable, and vibrant printing solutions for all your business needs. From massive billboards to intricate vinyl decals.",
-    whatsappUs: "WhatsApp Us",
-    chatWithAI: "Chat with AI",
-    aiFullScreen: "AI Full Screen",
-    priceEstimator: "Price Estimator",
-    coreServices: "Core Services",
-    servicesSubtitle: "We offer a wide range of printing services tailored to meet your specific requirements, ensuring the highest quality output every time.",
-    fastTurnaround: "Fast Turnaround",
-    fastTurnaroundDesc: "We understand deadlines. The efficient workflow ensures your projects are delivered on time, every time.",
-    premiumQuality: "Premium Quality",
-    premiumQualityDesc: "Using state-of-the-art machinery and high-grade materials, we guarantee vibrant and long-lasting prints.",
-    expertSupport: "Expert Support",
-    expertSupportDesc: "The team of design and printing experts is always ready to help you choose the best options for your needs.",
-    featuredProjects: "Featured Projects",
-    featuredProjectsSubtitle: "Take a look at some of our recent work. We take pride in delivering excellence across every project we handle.",
-    viewAllServices: "View All Services",
-    quickView: "Quick View",
-    serviceDetails: "Service Details",
-    aiPoweredSupport: "AI Powered Support",
-    chatWithOurAIAssistant: "Chat with our AI Assistant",
-    aiAssistantDesc: "Get instant answers to your questions about pricing, services, and turnaround times. The AI assistant is available 24/7 to help you with your printing needs.",
-    startChattingNow: "Start Chatting Now",
-    fullScreenMode: "Full Screen Mode",
-    expertPrintingSolutions: "Expert Printing Solutions Since 2010",
-    aboutDesc1: "Uttam Flex Printing has been a leader in the printing industry in Jehanabad for over 15 years. We specialize in large format printing, promotional materials, and business essentials. The mission is to provide high-quality, durable, and vibrant printing solutions that help your business stand out.",
-    aboutDesc2: "We use state-of-the-art machinery and premium materials to ensure every project meets the highest standards. Whether you need a massive billboard or a set of professional visiting cards, we've got you covered.",
-    proprietor: "Proprietor",
-    letsStartYourProject: "Let's Start Your Project",
-    contactDesc: "Have a question or ready to get started? Reach out to us today and our team will get back to you within 24 hours.",
-    location: "Location",
-    callUs: "Call Us",
-    emailUs: "Email Us",
-    fullName: "Full Name",
-    emailAddress: "Email Address",
-    serviceNeeded: "Service Needed",
-    message: "Message",
-    sendMessage: "Send Message",
-    chatOnWhatsApp: "Chat on WhatsApp",
-    footerDesc: "Your trusted partner for high-quality large format printing solutions. Quality you can see, service you can trust.",
-    quickLinks: "Quick Links",
-    workingHours: "Working Hours",
-    monSat: "Mon - Sat",
-    sunday: "Sunday",
-  },
-  hi: {
-    home: "होम",
-    services: "सेवाएं",
-    aiAssistant: "AI सहायक",
-    about: "हमारे बारे में",
-    contact: "संपर्क",
-    getQuote: "कोटेशन प्राप्त करें",
-    heroTitle: "आपकी दृष्टि को बड़े प्रारूप में जीवन दें।",
-    heroSubtitle: "उत्तम फ्लेक्स प्रिंटिंग आपकी सभी व्यावसायिक आवश्यकताओं के लिए उच्च गुणवत्ता, टिकाऊ और जीवंत प्रिंटिंग समाधान प्रदान करती है। बड़े बिलबोर्ड से लेकर जटिल विनाइल डिकल्स तक।",
-    whatsappUs: "व्हाट्सएप करें",
-    chatWithAI: "AI से चैट करें",
-    aiFullScreen: "AI फुल स्क्रीन",
-    priceEstimator: "मूल्य अनुमानक",
-    coreServices: "मुख्य सेवाएं",
-    servicesSubtitle: "हम आपकी विशिष्ट आवश्यकताओं को पूरा करने के लिए प्रिंटिंग सेवाओं की एक विस्तृत श्रृंखला प्रदान करते हैं, जो हर बार उच्चतम गुणवत्ता सुनिश्चित करती है।",
-    fastTurnaround: "तेज़ टर्नअराउंड",
-    fastTurnaroundDesc: "हम समय सीमा को समझते हैं। कुशल कार्यप्रवाह यह सुनिश्चित करता है कि आपके प्रोजेक्ट समय पर वितरित किए जाएं।",
-    premiumQuality: "प्रीमियम गुणवत्ता",
-    premiumQualityDesc: "अत्याधुनिक मशीनरी और उच्च श्रेणी की सामग्री का उपयोग करके, हम जीवंत और लंबे समय तक चलने वाले प्रिंट की गारंटी देते हैं।",
-    expertSupport: "विशेषज्ञ सहायता",
-    expertSupportDesc: "डिजाइन और प्रिंटिंग विशेषज्ञों की टीम आपकी आवश्यकताओं के लिए सर्वोत्तम विकल्प चुनने में आपकी मदद करने के लिए हमेशा तैयार है।",
-    featuredProjects: "विशेष प्रोजेक्ट्स",
-    featuredProjectsSubtitle: "हमारे हाल के कुछ कार्यों पर एक नज़र डालें। हमें हर प्रोजेक्ट में उत्कृष्टता प्रदान करने पर गर्व है।",
-    viewAllServices: "सभी सेवाएं देखें",
-    quickView: "त्वरित दृश्य",
-    serviceDetails: "सेवा विवरण",
-    aiPoweredSupport: "AI संचालित सहायता",
-    chatWithOurAIAssistant: "हमारे AI सहायक के साथ चैट करें",
-    aiAssistantDesc: "मूल्य निर्धारण, सेवाओं और टर्नअराउंड समय के बारे में अपने सवालों के तुरंत जवाब पाएं। AI सहायक आपकी प्रिंटिंग आवश्यकताओं में मदद के लिए 24/7 उपलब्ध है।",
-    startChattingNow: "अभी चैट शुरू करें",
-    fullScreenMode: "फुल स्क्रीन मोड",
-    expertPrintingSolutions: "2010 से विशेषज्ञ प्रिंटिंग समाधान",
-    aboutDesc1: "उत्तम फ्लेक्स प्रिंटिंग 15 वर्षों से अधिक समय से जहानाबाद में प्रिंटिंग उद्योग में अग्रणी रही है। हम बड़े प्रारूप प्रिंटिंग, प्रचार सामग्री और व्यावसायिक आवश्यक वस्तुओं में विशेषज्ञ हैं। हमारा मिशन उच्च गुणवत्ता, टिकाऊ और जीवंत प्रिंटिंग समाधान प्रदान करना है जो आपके व्यवसाय को अलग दिखने में मदद करते हैं।",
-    aboutDesc2: "हम यह सुनिश्चित करने के लिए अत्याधुनिक मशीनरी और प्रीमियम सामग्री का उपयोग करते हैं कि हर प्रोजेक्ट उच्चतम मानकों को पूरा करे। चाहे आपको एक विशाल बिलबोर्ड की आवश्यकता हो या पेशेवर विजिटिंग कार्ड के सेट की, हमने आपको कवर किया है।",
-    proprietor: "प्रोपराइटर",
-    letsStartYourProject: "अपना प्रोजेक्ट शुरू करें",
-    contactDesc: "कोई सवाल है या शुरू करने के लिए तैयार हैं? आज ही हमसे संपर्क करें और हमारी टीम 24 घंटे के भीतर आपसे संपर्क करेगी।",
-    location: "स्थान",
-    callUs: "हमें कॉल करें",
-    emailUs: "हमें ईमेल करें",
-    fullName: "पूरा नाम",
-    emailAddress: "ईमेल पता",
-    serviceNeeded: "आवश्यक सेवा",
-    message: "संदेश",
-    sendMessage: "संदेश भेजें",
-    chatOnWhatsApp: "व्हाट्सएप पर चैट करें",
-    footerDesc: "उच्च गुणवत्ता वाले बड़े प्रारूप प्रिंटिंग समाधानों के लिए आपका विश्वसनीय भागीदार। गुणवत्ता जो आप देख सकते हैं, सेवा जिस पर आप भरोसा कर सकते हैं।",
-    quickLinks: "त्वरित लिंक",
-    workingHours: "काम के घंटे",
-    monSat: "सोम - शनि",
-    sunday: "रविवार",
-  }
 };
 
 const Home = () => {
@@ -1374,66 +1915,131 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isServicesOpen, setIsServicesOpen] = useState(false);
 
+  const testimonials = [
+  { name: "Rahul Kumar", role: "Local Business Owner", text: "Uttam Flex Printing ne mere shop ka banner bahut hi kam samay mein aur best quality mein banaya. Highly recommended!" },
+  { name: "Priya Singh", role: "Event Planner", text: "Main hamesha apne events ke liye posters aur banners yahi se banwati hoon. Quality aur service dono top-notch hai." },
+  { name: "Amit Verma", role: "Student", text: "Visiting cards aur project posters ke liye best place in Jehanabad. Prices bhi bahut reasonable hain." },
+];
+
+const faqs = [
+  { question: "Do you provide same-day delivery?", answer: "Yes, for most small orders, we provide same-day delivery if ordered before 12 PM." },
+  { question: "What is the minimum order quantity?", answer: "We accept orders of all sizes, from a single unit to bulk orders." },
+  { question: "Do you offer graphic design services?", answer: "Yes, we have expert designers who can help you with custom designs for your projects." },
+];
+
+const Testimonials = () => (
+  <section className="py-24 bg-slate-950 text-white border-t border-white/5 relative overflow-hidden">
+    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 className="text-4xl font-bold text-center text-white mb-16 tracking-tight uppercase">What Our Clients Say</h2>
+      <div className="grid md:grid-cols-3 gap-8">
+        {testimonials.map((t, i) => (
+          <div key={i} className="p-10 bg-white/5 backdrop-blur-md rounded-[2.rem] border border-white/10 hover:border-blue-500/30 transition-all group shadow-2xl">
+            <p className="text-slate-400 mb-8 italic text-lg leading-relaxed">"{t.text}"</p>
+            <div className="font-bold text-white text-xl">{t.name}</div>
+            <div className="text-sm text-blue-400 font-bold uppercase tracking-widest mt-1">{t.role}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const FAQ = () => (
+  <section className="py-24 bg-slate-950 text-white border-t border-white/5">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 className="text-4xl font-bold text-center text-white mb-16 underline decoration-blue-500/30">Frequently Asked Questions</h2>
+      <div className="space-y-6">
+        {faqs.map((f, i) => (
+          <div key={i} className="bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10 hover:border-blue-500/30 transition-all group">
+            <h3 className="font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">{f.question}</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">{f.answer}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const Newsletter = () => (
+  <section className="py-24 bg-blue-600 text-white">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 className="text-4xl font-bold mb-6">Stay Updated</h2>
+      <p className="mb-8 text-blue-100">Subscribe to our newsletter for exclusive offers and printing tips.</p>
+      <form className="flex gap-4 max-w-md mx-auto">
+        <input type="email" placeholder="Enter your email" className="flex-1 px-6 py-4 rounded-full text-slate-900 outline-none" />
+        <button className="bg-slate-900 text-white px-8 py-4 rounded-full font-bold hover:bg-slate-800 transition-all">Subscribe</button>
+      </form>
+    </div>
+  </section>
+);
   const featuredProjects = [
     {
-      title: "Grand Opening Billboard",
-      description: "A massive 40x20ft high-resolution flex banner for a major retail launch in Jehanabad.",
-      image: "https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?auto=format&fit=crop&q=80&w=800&h=600",
+      title: "Custom Shop Banner",
+      description: "High-quality outdoor banner for a local shop in Jehanabad. Best quality in low price.",
+      image: "https://images.unsplash.com/photo-1583321500900-82807e458f3c?auto=format&fit=crop&q=80&w=800&h=600",
       gallery: [
-        "https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?auto=format&fit=crop&q=80&w=800&h=600",
-        "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=800&h=600",
-        "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800&h=600"
+        "https://images.unsplash.com/photo-1583321500900-82807e458f3c?auto=format&fit=crop&q=80&w=800&h=600",
+        "https://images.unsplash.com/photo-1612810806563-4cb8265db55f?auto=format&fit=crop&q=80&w=800&h=600"
       ],
       serviceSlug: "flex-printing",
       category: "Large Format"
     },
     {
-      title: "Corporate Identity Pack",
-      description: "Premium visiting cards and ID cards for a local tech firm, featuring matte finish and spot UV.",
-      image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80&w=800&h=600",
+      title: "Professional Visiting Cards",
+      description: "Premium matte-finish business cards. ₹199 se start.",
+      image: "https://images.unsplash.com/photo-1593642532400-2682810df593?auto=format&fit=crop&q=80&w=800&h=600",
       gallery: [
-        "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80&w=800&h=600",
-        "https://images.unsplash.com/photo-1586075010633-2442dc3d6334?auto=format&fit=crop&q=80&w=800&h=600",
-        "https://images.unsplash.com/photo-1586717791821-3f44a563eb4c?auto=format&fit=crop&q=80&w=800&h=600"
+        "https://images.unsplash.com/photo-1593642532400-2682810df593?auto=format&fit=crop&q=80&w=800&h=600",
+        "https://images.unsplash.com/photo-1586075010633-2442dc3d6334?auto=format&fit=crop&q=80&w=800&h=600"
       ],
       serviceSlug: "visiting-cards",
       category: "Business Essentials"
     },
     {
-      title: "Event Signage Suite",
-      description: "Complete set of roll-up banners, posters, and glow signs for a 3-day cultural festival.",
-      image: "https://images.unsplash.com/photo-1589118949245-7d38baf380d6?auto=format&fit=crop&q=80&w=800&h=600",
+      title: "LED Glow Sign Board",
+      description: "Custom LED backlit glow sign board for shop fronts. High visibility.",
+      image: "https://images.unsplash.com/photo-1563203369-26f2e4a5ccf7?auto=format&fit=crop&q=80&w=800&h=600",
       gallery: [
-        "https://images.unsplash.com/photo-1589118949245-7d38baf380d6?auto=format&fit=crop&q=80&w=800&h=600",
-        "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=800&h=600",
-        "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800&h=600"
+        "https://images.unsplash.com/photo-1563203369-26f2e4a5ccf7?auto=format&fit=crop&q=80&w=800&h=600",
+        "https://images.unsplash.com/photo-1589118949245-7d38baf380d6?auto=format&fit=crop&q=80&w=800&h=600"
       ],
-      serviceSlug: "banners-posters",
+      serviceSlug: "glow-sign-boards",
       category: "Large Format"
     },
     {
-      title: "Custom Team Apparel",
-      description: "High-quality screen-printed T-shirts for a local sports club with vibrant, long-lasting colors.",
-      image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&q=80&w=800&h=600",
+      title: "Event Poster",
+      description: "Vibrant posters for events and promotions. Fast delivery available.",
+      image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&q=80&w=800&h=600",
       gallery: [
-        "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&q=80&w=800&h=600",
-        "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=800&h=600",
-        "https://images.unsplash.com/photo-1562157873-818bc0726f68?auto=format&fit=crop&q=80&w=800&h=600"
+        "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&q=80&w=800&h=600",
+        "https://images.unsplash.com/photo-1536240478700-b869070f9279?auto=format&fit=crop&q=80&w=800&h=600"
       ],
-      serviceSlug: "tshirt-printing",
-      category: "Promotional Materials"
+      serviceSlug: "posters",
+      category: "Large Format"
+    },
+    {
+      title: "Exhibition Standee",
+      description: "Professional roll-up standee for business events.",
+      image: "https://images.unsplash.com/photo-1594498653385-d5172c532c00?auto=format&fit=crop&q=80&w=800&h=600",
+      gallery: [
+        "https://images.unsplash.com/photo-1594498653385-d5172c532c00?auto=format&fit=crop&q=80&w=800&h=600",
+        "https://images.unsplash.com/photo-1583321500900-82807e458f3c?auto=format&fit=crop&q=80&w=800&h=600"
+      ],
+      serviceSlug: "standee",
+      category: "Large Format"
     }
   ];
 
-  const projectCategories = ["All", ...new Set(featuredProjects.map(p => p.category))];
+  const projectCategories = useMemo(() => ["All", ...new Set(featuredProjects.map(p => p.category))], []);
 
-  const filteredProjects = featuredProjects.filter(project => 
+  const filteredProjects = useMemo(() => featuredProjects.filter(project => 
     activeProjectCategory === "All" || project.category === activeProjectCategory
-  );
+  ), [activeProjectCategory]);
 
-  const categories = ["All", ...new Set(services.map(s => s.category))];
+  const categories = useMemo(() => ["All", ...new Set(services.map(s => s.category))], []);
   
-  const filteredServices = services.filter(service => {
+  const filteredServices = useMemo(() => getDynamicServices().filter(service => {
     const matchesCategory = activeCategory === "All" || service.category === activeCategory;
     const matchesSearch = service.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          service.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -1444,20 +2050,32 @@ const Home = () => {
     } else {
       return (b.popularity || 0) - (a.popularity || 0);
     }
-  });
+  }), [activeCategory, searchQuery, sortBy]);
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-      setShowScrollTop(window.scrollY > 300);
-      
-      const scrollHeight = document.documentElement.scrollHeight;
-      const clientHeight = document.documentElement.clientHeight;
-      const scrollTop = window.scrollY;
-      setShowScrollDown(scrollHeight - scrollTop - clientHeight > 300);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const isScrolled = window.scrollY > 50;
+          setScrolled(prev => prev !== isScrolled ? isScrolled : prev);
+          
+          const isShowTop = window.scrollY > 300;
+          setShowScrollTop(prev => prev !== isShowTop ? isShowTop : prev);
+          
+          const scrollHeight = document.documentElement.scrollHeight;
+          const clientHeight = document.documentElement.clientHeight;
+          const scrollTop = window.scrollY;
+          const isShowDown = scrollHeight - scrollTop - clientHeight > 300;
+          setShowScrollDown(prev => prev !== isShowDown ? isShowDown : prev);
+          
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Set initial state
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -1472,8 +2090,24 @@ const Home = () => {
     setTimeout(() => setFormSubmitted(false), 5000);
   };
 
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-slate-950">
+      {/* Top Offer Banner */}
+      <div className="bg-blue-600 text-white py-2.5 px-4 text-center text-sm font-bold relative z-[60] rounded-b-xl max-w-[98%] mx-auto shadow-lg shadow-blue-500/20">
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-4">
+          <span className="flex items-center gap-1">
+            <Zap className="w-4 h-4" />
+            Limited Time Offer: 10% OFF on Bulk Orders!
+          </span>
+          <span className="hidden md:inline">|</span>
+          <span className="flex items-center gap-1">
+            <Clock className="w-4 h-4" />
+            Same Day Delivery Available
+          </span>
+        </div>
+      </div>
+
       {/* Quote Modal */}
       <AnimatePresence>
         {isQuoteModalOpen && (
@@ -1538,7 +2172,11 @@ const Home = () => {
       <PriceCalculator 
         isOpen={isCalculatorOpen} 
         onClose={() => setIsCalculatorOpen(false)} 
+        setIsChatOpen={setIsChatOpen}
       />
+
+
+
 
       <ChatBot 
         isOpen={isChatOpen} 
@@ -1551,36 +2189,59 @@ const Home = () => {
         onClose={() => setIsGalleryOpen(false)}
       />
 
-      {/* Navigation */}
-      <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'}`}>
+      {/* Top Banner */}
+      <div className="bg-red-600 text-white py-2 overflow-hidden relative z-[80]">
+        <motion.div 
+          animate={{ x: [0, -1000] }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="whitespace-nowrap flex gap-10 items-center"
+        >
+          {[1,2,3,4,5,6,7,8].map(i => (
+            <span key={i} className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3">
+              <Zap className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+              {t('topOffer')}
+              <Zap className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+            </span>
+          ))}
+        </motion.div>
+      </div>
+
+      <nav className={`absolute top-8 left-0 w-full z-[70] transition-all duration-500 ${scrolled || isMenuOpen ? 'bg-slate-950/95 backdrop-blur-xl shadow-2xl py-3 border-b border-white/5' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <Logo scrolled={scrolled} light={!scrolled} />
-              <div className="flex items-center gap-2 bg-black/10 rounded-lg p-1">
-                <button onClick={() => setLanguage('en')} className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${language === 'en' ? 'bg-indigo-600 text-white' : scrolled ? 'text-slate-600' : 'text-white'}`}>EN</button>
-                <button onClick={() => setLanguage('hi')} className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${language === 'hi' ? 'bg-indigo-600 text-white' : scrolled ? 'text-slate-600' : 'text-white'}`}>हिं</button>
+              <Logo scrolled={scrolled || isMenuOpen} light={!scrolled && !isMenuOpen} />
+              <div className="flex items-center gap-2 bg-black/5 rounded-lg p-1">
+                <button onClick={() => setLanguage('en')} className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${language === 'en' ? 'bg-blue-600 text-white' : scrolled ? 'text-white/60 hover:text-white' : 'text-white'}`}>EN</button>
+                <button onClick={() => setLanguage('hi')} className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${language === 'hi' ? 'bg-blue-600 text-white' : scrolled ? 'text-white/60 hover:text-white' : 'text-white'}`}>हिं</button>
               </div>
             </div>
 
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-8">
-              {['home', 'aiAssistant', 'about', 'contact'].map((item) => (
+              {['home', 'about', 'contact'].map((item) => (
                 <a 
                   key={item} 
-                  href={`#${t(item as any).toLowerCase().replace(' ', '-')}`}
-                  className={`text-sm font-medium transition-colors hover:text-indigo-600 ${scrolled ? 'text-slate-600' : 'text-white/90'}`}
+                  href={`#${item}`}
+                  className={`text-sm font-bold uppercase tracking-widest transition-all hover:text-blue-400 ${scrolled ? 'text-white' : 'text-white'}`}
                 >
                   {t(item as any)}
                 </a>
               ))}
+              <button 
+                onClick={() => setIsChatOpen(true)}
+                className={`flex items-center gap-2 text-sm font-bold uppercase tracking-widest transition-all hover:text-blue-400 ${scrolled ? 'text-white' : 'text-white'}`}
+              >
+                <Bot className="w-4 h-4" />
+                {t('aiAssistant')}
+              </button>
               <div className="relative">
                 <button 
                   onClick={() => setIsServicesOpen(!isServicesOpen)}
-                  className={`text-sm font-medium transition-colors hover:text-indigo-600 flex items-center gap-1 ${scrolled ? 'text-slate-600' : 'text-white/90'}`}
+                  className={`text-sm font-bold uppercase tracking-widest transition-all hover:text-blue-400 flex items-center gap-1 ${scrolled ? 'text-white' : 'text-white'}`}
                 >
                   {t('services' as any)}
-                  <ChevronDown className="w-4 h-4" />
+                  <ChevronDown className={`w-4 h-4 transition-transform ${isServicesOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {isServicesOpen && (
                   <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50">
@@ -1589,7 +2250,7 @@ const Home = () => {
                         key={service.title} 
                         href={`#services`}
                         onClick={() => setIsServicesOpen(false)}
-                        className="block px-4 py-2 text-sm text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                        className="block px-4 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                       >
                         {service.title}
                       </a>
@@ -1599,7 +2260,7 @@ const Home = () => {
               </div>
               <button 
                 onClick={() => openQuoteModal()}
-                className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                className="bg-blue-600 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
               >
                 {t('getQuote')}
               </button>
@@ -1607,36 +2268,59 @@ const Home = () => {
 
             {/* Mobile Menu Toggle */}
             <button 
-              className="md:hidden p-2"
+              className="md:hidden p-2 relative z-[80]"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              {isMenuOpen ? <X className={scrolled ? 'text-slate-900' : 'text-white'} /> : <Menu className={scrolled ? 'text-slate-900' : 'text-white'} />}
+              {isMenuOpen ? <X className="text-white w-8 h-8" /> : <Menu className={scrolled ? 'text-white w-8 h-8' : 'text-white w-8 h-8'} />}
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
+            initial={{ opacity: 0, y: '-100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-40 bg-zinc-50 pt-24 px-6 md:hidden"
+            className="fixed inset-0 z-[65] bg-slate-950 pt-24 px-6 md:hidden overflow-y-auto"
           >
+            <div className="flex justify-between items-center mb-8 pb-4 border-b border-white/10">
+              <span className="text-xs font-black uppercase tracking-widest text-slate-500">Navigation Menu</span>
+              <button 
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center gap-1 text-white font-bold text-xs uppercase"
+              >
+                Close <X className="w-4 h-4" />
+              </button>
+            </div>
             <div className="flex flex-col gap-2">
-              {['Home', 'Services', 'AI Assistant', 'About', 'Contact'].map((item) => (
+              {['Home', 'About', 'Contact'].map((item) => (
                 <a 
                   key={item} 
-                  href={`#${item.toLowerCase().replace(' ', '-')}`}
-                  className="text-2xl font-bold text-zinc-950 block py-4 border-b border-zinc-200"
+                  href={`#${item.toLowerCase()}`}
+                  className="text-2xl font-black text-white block py-4 border-b border-white/10 uppercase tracking-tighter flex justify-between items-center group"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item}
+                  <ChevronRight className="w-6 h-6 text-slate-700 group-hover:text-blue-400 transition-colors" />
                 </a>
               ))}
+              <button 
+                onClick={() => {
+                  setIsChatOpen(true);
+                  setIsMenuOpen(false);
+                }}
+                className="text-2xl font-black text-blue-600 flex py-4 border-b border-slate-100 uppercase tracking-tighter justify-between items-center group"
+              >
+                <div className="flex items-center gap-3">
+                  <Bot className="w-8 h-8" />
+                  AI Assistant
+                </div>
+                <ChevronRight className="w-6 h-6 text-blue-300 group-hover:text-blue-600 transition-colors" />
+              </button>
               <button 
                 onClick={() => {
                   openQuoteModal();
@@ -1657,50 +2341,80 @@ const Home = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
-        className="relative min-h-screen flex items-center overflow-hidden bg-zinc-950 pt-24 pb-12 md:pt-0 md:pb-0"
+        className="relative min-h-screen flex items-center overflow-hidden bg-slate-950 pt-24 pb-12 md:pt-0 md:pb-0"
       >
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          {/* Animated Background Blobs */}
+          <div className="absolute inset-0 pointer-events-none opacity-50">
+            <motion.div 
+              animate={{ 
+                x: [0, 80, 0],
+                y: [0, 40, 0],
+                scale: [1, 1.1, 1],
+                rotate: [0, 45, 0]
+              }}
+              transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+              style={{ willChange: "transform" }}
+              className="absolute -top-[15%] -left-[15%] w-[60%] h-[60%] bg-blue-600/10 rounded-full blur-[80px]"
+            />
+            <motion.div 
+              animate={{ 
+                x: [0, -80, 0],
+                y: [0, 80, 0],
+                scale: [1, 1.2, 1],
+                rotate: [0, -45, 0]
+              }}
+              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+              style={{ willChange: "transform" }}
+              className="absolute top-[5%] -right-[15%] w-[70%] h-[70%] bg-purple-600/10 rounded-full blur-[90px]"
+            />
+            <motion.div 
+              animate={{ 
+                x: [0, 40, 0],
+                y: [0, -40, 0],
+                scale: [1, 1.1, 1]
+              }}
+              transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+              style={{ willChange: "transform" }}
+              className="absolute -bottom-[15%] left-[5%] w-[55%] h-[55%] bg-cyan-600/10 rounded-full blur-[80px]"
+            />
+          </div>
+
           <video
             autoPlay
             loop
             muted
             playsInline
-            className="w-full h-full object-cover opacity-40"
+            className="w-full h-full object-cover opacity-30"
             src="https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_25fps.mp4"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-2xl"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="max-w-4xl mx-auto text-center"
           >
-            <div className="flex flex-wrap gap-4 mb-8">
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold uppercase tracking-widest">
-                <Zap className="w-3 h-3" />
-                Premium Printing
-              </div>
-              <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white text-[10px] font-bold uppercase tracking-widest">
-                <span className="text-cyan-400">C</span>
-                <span className="text-[#c2185b]">M</span>
-                <span className="text-yellow-400">Y</span>
-                <span className="text-slate-900 bg-white px-0.5 rounded-sm">K</span>
-                <span className="ml-1 opacity-60">Certified</span>
+            <div className="flex flex-wrap justify-center gap-4 mb-8">
+              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest backdrop-blur-md">
+                <Zap className="w-3.5 h-3.5" />
+                Best in Jehanabad
               </div>
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-6">
-              {t('heroTitle')}
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[0.9] tracking-tighter mb-6 font-display uppercase">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Uttam Flex Printing</span><br/>
+              <span className="text-3xl md:text-5xl lg:text-6xl text-slate-300 font-bold tracking-tight mt-4 block">Best Printing In Jehanabad</span>
             </h1>
-            <p className="text-lg text-slate-300 mb-8 leading-relaxed">
-              {t('heroSubtitle')}
+            <p className="text-xl md:text-2xl text-blue-200 mb-12 max-w-2xl mx-auto font-medium tracking-wide">
+              Fast Delivery <span className="text-white/30 px-2">|</span> Low Price <span className="text-white/30 px-2">|</span> High Quality
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button 
                 onClick={() => openQuoteModal()}
-                className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 group"
+                className="w-full sm:w-auto bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-500 transition-all flex items-center justify-center gap-2 group shadow-xl shadow-blue-900/20 hover:shadow-blue-900/40 hover:-translate-y-1"
               >
                 {t('getQuote')}
                 <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -1709,30 +2423,23 @@ const Home = () => {
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="bg-emerald-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto bg-[#25D366] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-[#128C7E] transition-all flex items-center justify-center gap-2 shadow-xl shadow-[#25D366]/20 hover:shadow-[#25D366]/40 hover:-translate-y-1"
               >
-                <Phone className="w-5 h-5" />
+                <MessageCircle className="w-5 h-5" />
                 {t('whatsappUs')}
               </a>
               <button 
                 onClick={() => setIsChatOpen(true)}
-                className="bg-white/5 backdrop-blur-md border border-white/10 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-xl hover:-translate-y-1"
               >
                 <Bot className="w-5 h-5" />
-                {t('chatWithAI')}
+                Chat with AI
               </button>
-              <Link 
-                to="/chat"
-                className="bg-white/5 backdrop-blur-md border border-white/10 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/10 transition-all flex items-center justify-center gap-2"
-              >
-                <Maximize2 className="w-5 h-5" />
-                {t('aiFullScreen')}
-              </Link>
               <button 
                 onClick={() => setIsCalculatorOpen(true)}
-                className="bg-white text-slate-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all flex items-center justify-center gap-2 border border-slate-200 shadow-sm"
+                className="w-full sm:w-auto bg-white/5 backdrop-blur-md border border-white/10 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/10 transition-all flex items-center justify-center gap-2 hover:-translate-y-1"
               >
-                <Calculator className="w-5 h-5 text-indigo-600" />
+                <Calculator className="w-5 h-5 text-blue-400" />
                 {t('priceEstimator')}
               </button>
             </div>
@@ -1745,7 +2452,7 @@ const Home = () => {
             <div className="grid grid-cols-3 gap-8 p-8 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl">
               {stats.map((stat, idx) => (
                 <div key={idx} className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 flex items-center justify-center text-indigo-400">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-600/20 flex items-center justify-center text-blue-400">
                     {stat.icon}
                   </div>
                   <div>
@@ -1760,11 +2467,14 @@ const Home = () => {
       </motion.section>
 
       {/* Services Section */}
-      <section id="services" className="py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="services" className="py-32 bg-slate-950 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-600/5 -skew-x-12 translate-x-1/2 pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-5xl font-display font-bold text-slate-950 mb-6 tracking-tight">{t('coreServices')}</h2>
-            <p className="text-lg text-slate-600 leading-relaxed">{t('servicesSubtitle')}</p>
+            <h2 className="text-5xl font-display font-bold text-white mb-6 tracking-tight">
+              <span className="text-blue-500">Our</span> Services & Pricing
+            </h2>
+            <p className="text-lg text-slate-400 leading-relaxed">{t('servicesSubtitle')}</p>
             
             <div className="max-w-md mx-auto mt-12 mb-10 relative">
               <input 
@@ -1772,31 +2482,23 @@ const Home = () => {
                 placeholder="Search services by title or description..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-6 py-4 rounded-full border border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all pl-12 bg-slate-50"
+                className="w-full px-6 py-4 rounded-full border border-white/10 shadow-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all pl-12 bg-white/5 text-white backdrop-blur-md placeholder:text-slate-500"
               />
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-              {searchQuery && (
-                <button 
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
             </div>
 
             <div className="flex flex-wrap justify-center gap-3 mb-6">
               <select 
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-6 py-2.5 rounded-full border border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all bg-slate-50 text-sm font-bold text-slate-600"
+                className="px-6 py-2.5 rounded-full border border-white/10 shadow-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white/5 text-white backdrop-blur-md text-sm font-bold cursor-pointer hover:bg-white/10"
               >
-                <option value="popularity">Sort by Popularity</option>
-                <option value="alphabetical">Sort Alphabetically</option>
+                <option value="popularity" className="bg-slate-900">Sort by Popularity</option>
+                <option value="alphabetical" className="bg-slate-900">Sort Alphabetically</option>
               </select>
             </div>
 
@@ -1807,8 +2509,8 @@ const Home = () => {
                   onClick={() => setActiveCategory(cat)}
                   className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
                     activeCategory === cat
-                      ? "bg-slate-950 text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                      : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20 hover:bg-white/10"
                   }`}
                 >
                   {cat}
@@ -1817,75 +2519,84 @@ const Home = () => {
             </div>
           </div>
 
-          <motion.div 
-            layout
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
-            <AnimatePresence mode="popLayout">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <AnimatePresence mode="popLayout" initial={false}>
               {filteredServices.map((service, idx) => (
                 <motion.div 
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.4, delay: idx * 0.05 }}
                   key={service.title}
-                  whileHover={{ y: -12, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 group cursor-pointer transition-all hover:shadow-2xl hover:border-indigo-100 hover:bg-gradient-to-b hover:from-white hover:to-indigo-50/30"
+                  className="bg-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 group cursor-pointer transition-all hover:border-blue-500/50 backdrop-blur-md"
+                  style={{ willChange: "transform, opacity" }}
                 >
-                <div className="h-56 overflow-hidden">
-                  <img 
-                    src={service.image} 
-                    alt={service.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-                <div className="p-8">
-                  <motion.div 
-                    className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-900 mb-6"
-                    whileHover={{ scale: 1.1, rotate: 10 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                  >
-                    {service.icon}
-                  </motion.div>
-                  <h3 className="text-2xl font-display font-bold text-slate-950 mb-3">{service.title}</h3>
-                  <p className="text-slate-600 text-sm leading-relaxed mb-6">
-                    {service.description}
-                  </p>
-                  <div className="flex flex-col gap-3">
-                    <Link to={`/services/${service.slug}`} className="text-slate-950 font-bold text-sm flex items-center gap-2 hover:gap-3 transition-all">
-                      Learn More <ChevronRight className="w-4 h-4" />
-                    </Link>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openQuoteModal(service.title);
-                      }}
-                      className="w-full bg-slate-900 text-white py-3 rounded-xl text-sm font-bold hover:bg-indigo-600 transition-all shadow-md hover:shadow-indigo-500/20"
-                    >
-                      Request Custom Quote
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const relevantProject = featuredProjects.find(p => p.serviceSlug === service.slug);
-                        if (relevantProject) {
-                          setSelectedProject(relevantProject);
-                          setIsGalleryOpen(true);
-                        } else {
-                          alert("No gallery available for this service.");
-                        }
-                      }}
-                      className="w-full bg-slate-100 text-slate-900 py-3 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all"
-                    >
-                      Quick View
-                    </button>
+                  <div className="h-56 overflow-hidden relative">
+                    {service.onSale && (
+                      <div className="absolute top-4 left-4 z-10 bg-red-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-1">
+                        <Percent className="w-3 h-3" />
+                        {service.discount} {t('off')}
+                      </div>
+                    )}
+                    <img 
+                      src={service.image} 
+                      alt={service.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      referrerPolicy="no-referrer"
+                    />
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                  <div className="p-8">
+                    <div className="flex justify-between items-start mb-6">
+                      <motion.div 
+                        className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20"
+                        whileHover={{ scale: 1.1, rotate: 10 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                      >
+                        {service.icon}
+                      </motion.div>
+                    </div>
+                    <h3 className="text-2xl font-display font-bold text-white mb-3">{service.title}</h3>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex flex-col">
+                        <span className="text-blue-400 font-black text-xl">{service.price}</span>
+                        {service.onSale && (
+                          <span className="text-slate-500 text-xs line-through">{service.originalPrice}</span>
+                        )}
+                      </div>
+                      <span className="text-slate-500 text-[10px] uppercase font-bold tracking-widest">Starting from</span>
+                    </div>
+                    <p className="text-slate-400 text-sm leading-relaxed mb-6">
+                      {service.description}
+                    </p>
+                    <div className="flex flex-col gap-3">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openQuoteModal(service.title);
+                        }}
+                        className="w-full bg-blue-600 text-white py-4 rounded-xl text-lg font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 group/btn"
+                      >
+                        <MessageSquare className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                        {t('orderNow')}
+                      </button>
+                      <div className="grid grid-cols-1 gap-3">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openQuoteModal(service.title);
+                          }}
+                          className="bg-white/5 text-white py-3 rounded-xl text-sm font-bold hover:bg-white/10 transition-all border border-white/10"
+                        >
+                          {t('getQuote')}
+                        </button>
+                      </div>
+                      <Link to={`/services/${service.slug}`} className="text-slate-500 font-bold text-xs flex items-center justify-center gap-2 hover:text-blue-400 transition-all mt-2">
+                        {t('viewDetails')} <ChevronRight className="w-3 h-3" />
+                      </Link>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </AnimatePresence>
             {filteredServices.length === 0 && (
               <motion.div 
@@ -1893,254 +2604,80 @@ const Home = () => {
                 animate={{ opacity: 1 }}
                 className="col-span-full py-20 text-center"
               >
-                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400">
+                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-500">
                   <ImageIcon className="w-10 h-10" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">No services found</h3>
-                <p className="text-slate-600">Try adjusting your search or category filter.</p>
+                <h3 className="text-xl font-bold text-white mb-2">No services found</h3>
+                <p className="text-slate-400">Try adjusting your search or category filter.</p>
                 <button 
                   onClick={() => {
                     setSearchQuery("");
                     setActiveCategory("All");
                   }}
-                  className="mt-6 text-indigo-600 font-bold hover:underline"
+                  className="mt-6 text-blue-400 font-bold hover:underline"
                 >
                   Clear all filters
                 </button>
               </motion.div>
             )}
-          </motion.div>
-        </div>
-      </section>
-
-
-      {/* Why Us Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mx-auto mb-6">
-                <Zap className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-4">{t('fastTurnaround')}</h3>
-              <p className="text-slate-600">{t('fastTurnaroundDesc')}</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mx-auto mb-6">
-                <Award className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-4">{t('premiumQuality')}</h3>
-              <p className="text-slate-600">{t('premiumQualityDesc')}</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mx-auto mb-6">
-                <Users className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-4">{t('expertSupport')}</h3>
-              <p className="text-slate-600">{t('expertSupportDesc')}</p>
-            </div>
           </div>
-        </div>
-      </section>
-
-      <section className="py-24 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-4xl font-bold text-slate-900 mb-6">Custom Graphic Design Services</h2>
-              <p className="text-lg text-slate-600 mb-8">
-                Elevate your brand with professional graphic design. Our expert designers create visually stunning graphics that capture your brand's essence, ensuring your marketing materials stand out and leave a lasting impression. From logos and brochures to social media assets, we bring your vision to life.
-              </p>
-              <button 
-                onClick={() => {
-                  const contactSection = document.getElementById('contact');
-                  contactSection?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="bg-indigo-600 text-white px-8 py-4 rounded-full font-bold hover:bg-indigo-700 transition-all"
-              >
-                Design Your Vision
-              </button>
-            </div>
-            <div className="relative">
-              <img 
-                src="https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80&w=800&h=600" 
-                alt="Graphic Design" 
-                className="rounded-3xl shadow-2xl"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        </div>
-      </section>
-
-      {/* Featured Projects Section */}
-      <section className="py-24 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-            <div className="max-w-2xl">
-              <h2 className="text-4xl font-bold text-slate-900 mb-4">{t('featuredProjects')}</h2>
-              <p className="text-slate-600 text-lg mb-8">
-                {t('featuredProjectsSubtitle')}
-              </p>
-              
-              <div className="flex flex-wrap gap-2">
-                {projectCategories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setActiveProjectCategory(cat)}
-                    className={`px-5 py-2 rounded-full text-xs font-bold transition-all ${
-                      activeProjectCategory === cat
-                        ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
-                        : "bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <Link 
-              to="/#services" 
-              className="text-indigo-600 font-bold flex items-center gap-2 hover:gap-3 transition-all"
-            >
-              {t('viewAllServices')} <ChevronRight className="w-5 h-5" />
-            </Link>
-          </div>
-
-          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <AnimatePresence mode="popLayout">
-            {filteredProjects.map((project, idx) => (
-              <motion.div
-                key={project.title}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3 }}
-                whileHover={{ y: -10, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                className="group relative bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 cursor-pointer transition-all hover:shadow-2xl hover:border-indigo-200"
-              >
-                <div className="aspect-video overflow-hidden">
-                  <img 
-                    src={project.image} 
-                    alt={project.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-                <div className="absolute top-4 left-4">
-                  <span className="px-4 py-1.5 bg-white/90 backdrop-blur-sm text-indigo-600 text-xs font-bold rounded-full shadow-sm">
-                    {project.category}
-                  </span>
-                </div>
-                <div className="p-8">
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">{project.title}</h3>
-                  <p className="text-slate-600 mb-6 leading-relaxed">
-                    {project.description}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-4">
-                    <button 
-                      onClick={() => {
-                        setSelectedProject(project);
-                        setIsGalleryOpen(true);
-                      }}
-                      className="inline-flex items-center gap-2 text-indigo-600 font-bold hover:text-indigo-700 transition-colors"
-                    >
-                      {t('quickView')} <ImageIcon className="w-4 h-4" />
-                    </button>
-                    <Link 
-                      to={`/services/${project.serviceSlug}`}
-                      className="inline-flex items-center gap-2 text-slate-400 font-bold hover:text-slate-600 transition-colors text-sm"
-                    >
-                      {t('serviceDetails')} <ChevronRight className="w-4 h-4" />
-                    </Link>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-            </AnimatePresence>
-            {filteredProjects.length === 0 && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="col-span-full py-20 text-center"
-              >
-                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400">
-                  <ImageIcon className="w-10 h-10" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">No projects found</h3>
-                <p className="text-slate-600">Try adjusting your category filter.</p>
-                <button 
-                  onClick={() => setActiveProjectCategory("All")}
-                  className="mt-6 text-indigo-600 font-bold hover:underline"
-                >
-                  Clear filter
-                </button>
-              </motion.div>
-            )}
-          </motion.div>
         </div>
       </section>
 
       <FAQSection />
 
       {/* AI Assistant Section */}
-      <section id="ai-assistant" className="py-24 bg-white">
+      <section id="ai-assistant" className="py-32 bg-slate-950 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-indigo-600 rounded-[3rem] p-8 md:p-16 overflow-hidden relative">
+          <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-[3rem] p-8 md:p-20 overflow-hidden relative shadow-2xl shadow-blue-900/20">
             <div className="absolute top-0 right-0 w-1/3 h-full bg-white/5 skew-x-12 translate-x-1/2" />
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-bold mb-6">
-                  <Bot className="w-4 h-4" />
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-white text-sm font-bold mb-8 border border-white/20">
+                  <Bot className="w-5 h-5" />
                   {t('aiPoweredSupport')}
                 </div>
-                <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">{t('chatWithOurAIAssistant')}</h2>
-                <p className="text-indigo-100 text-lg mb-8 leading-relaxed">
+                <h2 className="text-5xl md:text-6xl font-display font-bold text-white mb-8 tracking-tight leading-tight">
+                  {t('chatWithOurAIAssistant')}
+                </h2>
+                <p className="text-blue-100 text-xl mb-12 leading-relaxed font-medium">
                   {t('aiAssistantDesc')}
                 </p>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-6">
                   <button 
                     onClick={() => setIsChatOpen(true)}
-                    className="bg-white text-indigo-600 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-indigo-50 transition-all flex items-center gap-2"
+                    className="bg-white text-blue-600 px-10 py-5 rounded-2xl font-bold text-xl hover:bg-blue-50 transition-all flex items-center gap-3 shadow-xl shadow-blue-900/20 hover:-translate-y-1"
                   >
-                    <MessageSquare className="w-5 h-5" />
+                    <MessageSquare className="w-6 h-6" />
                     {t('startChattingNow')}
                   </button>
                   <Link 
                     to="/chat"
-                    className="bg-white/10 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/20 transition-all flex items-center gap-2 border border-white/20"
+                    className="bg-white/10 backdrop-blur-md text-white px-10 py-5 rounded-2xl font-bold text-xl hover:bg-white/20 transition-all flex items-center gap-3 border border-white/20 hover:-translate-y-1"
                   >
-                    <Maximize2 className="w-5 h-5" />
+                    <Maximize2 className="w-6 h-6" />
                     {t('fullScreenMode')}
                   </Link>
                 </div>
               </div>
-              <div className="hidden lg:block">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-indigo-400 blur-3xl opacity-20 animate-pulse" />
-                  <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8">
-                    <div className="space-y-4">
-                      <div className="flex justify-start">
-                        <div className="bg-white/20 rounded-2xl p-3 text-white text-sm max-w-[80%]">
-                          Namaste! How can I help you today?
-                        </div>
+              <div className="hidden lg:block relative">
+                <div className="absolute inset-0 bg-blue-400 blur-[100px] opacity-30 animate-pulse" />
+                <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-10 shadow-2xl">
+                  <div className="space-y-6">
+                    <div className="flex justify-start">
+                      <div className="bg-white/20 backdrop-blur-md rounded-2xl p-4 text-white text-lg max-w-[85%] border border-white/10">
+                        Namaste! How can I help you today?
                       </div>
-                      <div className="flex justify-end">
-                        <div className="bg-white rounded-2xl p-3 text-indigo-600 text-sm max-w-[80%] font-medium">
-                          What is the price for flex printing?
-                        </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <div className="bg-white rounded-2xl p-4 text-blue-600 text-lg max-w-[85%] font-bold shadow-lg">
+                        What is the price for flex printing?
                       </div>
-                      <div className="flex justify-start">
-                        <div className="bg-white/20 rounded-2xl p-3 text-white text-sm max-w-[80%]">
-                          Flex printing starts at just ₹12 per sq. ft. for high-quality durable material!
-                        </div>
+                    </div>
+                    <div className="flex justify-start">
+                      <div className="bg-white/20 backdrop-blur-md rounded-2xl p-4 text-white text-lg max-w-[85%] border border-white/10">
+                        Flex printing starts at just ₹12 per sq. ft. for high-quality durable material!
                       </div>
                     </div>
                   </div>
@@ -2152,52 +2689,66 @@ const Home = () => {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-24 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <section id="about" className="py-32 bg-slate-950 text-white overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-full bg-blue-600/5 -skew-y-6 translate-y-24" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div className="relative">
-              <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl aspect-square">
+              <div className="relative z-10 rounded-[2.5rem] overflow-hidden shadow-2xl aspect-[4/5] border-8 border-white/10">
                 <img 
-                  src="https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?auto=format&fit=crop&q=80&w=800&h=800" 
+                  src="https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?auto=format&fit=crop&q=80&w=800&h=1000" 
                   alt="Workshop" 
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                <div className="absolute bottom-8 left-8 right-8">
+                  <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-xl">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-2xl shadow-inner border border-white/20">
+                        <Users className="w-7 h-7" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">{t('proprietor')}</div>
+                        <div className="text-xl font-bold text-white">Mr. Ravi Kumar</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="absolute -bottom-8 -right-8 w-64 h-64 bg-indigo-600 rounded-3xl -z-0 hidden md:block" />
-              <div className="absolute -top-8 -left-8 w-32 h-32 border-8 border-indigo-100 rounded-3xl -z-0 hidden md:block" />
+              <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-600/20 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-cyan-600/20 rounded-full blur-3xl animate-pulse" />
             </div>
 
             <div>
-              <h2 className="text-4xl font-bold text-slate-900 mb-6">{t('expertPrintingSolutions')}</h2>
-              <p className="text-slate-600 mb-8 text-lg leading-relaxed">
-                {t('aboutDesc1')}
-              </p>
-              <p className="text-slate-600 mb-8 text-lg leading-relaxed">
-                {t('aboutDesc2')}
-              </p>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold text-sm mb-6">
+                <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
+                {t('ourStory')}
+              </div>
+              <h2 className="text-5xl font-display font-bold text-white mb-8 tracking-tight leading-tight">
+                {t('expertPrintingSolutions')}
+              </h2>
+              <div className="space-y-6 text-lg text-slate-400 leading-relaxed mb-12">
+                <p>
+                  {t('aboutDesc1')}
+                </p>
+                <p>
+                  {t('aboutDesc2')}
+                </p>
+              </div>
               
-              <div className="space-y-4 mb-10">
-                <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl bg-indigo-50 border border-indigo-100 w-fit">
-                  <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-xl">
-                    R
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-indigo-600 uppercase tracking-wider">{t('proprietor')}</div>
-                    <div className="text-lg font-bold text-slate-900">Mr. Ravi Kumar</div>
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {[
                   "Fast turnaround times for urgent projects",
                   "High-resolution printing with vibrant colors",
                   "Durable materials for long-lasting results",
                   "Competitive pricing without compromising quality"
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                      <CheckCircle2 className="w-4 h-4" />
+                  <div key={idx} className="flex items-start gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors group">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 mt-0.5 group-hover:scale-110 transition-transform">
+                      <CheckCircle2 className="w-5 h-5" />
                     </div>
-                    <span className="text-slate-700 font-medium">{item}</span>
+                    <span className="text-slate-300 font-medium text-sm leading-snug">{item}</span>
                   </div>
                 ))}
               </div>
@@ -2208,113 +2759,139 @@ const Home = () => {
 
       <PortfolioSection />
       <MaterialGuideSection />
-      <TestimonialsSection />
+      <Testimonials />
 
       {/* Contact Section */}
-      <section id="contact" className="py-24 bg-indigo-600 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-700 skew-x-12 translate-x-1/2 -z-0" />
+      <section id="contact" className="py-32 bg-slate-950 relative overflow-hidden text-white">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-600/10 skew-x-12 translate-x-1/2 -z-0 blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-1/2 h-full bg-cyan-600/10 -skew-x-12 -translate-x-1/2 -z-0 blur-3xl" />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            <div className="text-white">
-              <h2 className="text-4xl font-bold mb-6">{t('letsStartYourProject')}</h2>
-              <p className="text-indigo-100 mb-12 text-lg">
+            <div>
+              <h2 className="text-5xl font-display font-bold mb-6 tracking-tight">Let's Start Your <span className="text-blue-500">Project</span></h2>
+              <p className="text-slate-400 mb-12 text-lg leading-relaxed max-w-md">
                 {t('contactDesc')}
               </p>
 
-              <div className="space-y-8">
+              <div className="space-y-6">
                 <a 
                   href="https://www.google.com/maps/search/?api=1&query=Uttam+Flex+Printing+Near+Palan+G+Mall+Jehanabad" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="flex items-start gap-4 group hover:bg-white/5 p-4 rounded-2xl transition-all"
+                  className="flex items-start gap-6 group p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all backdrop-blur-md"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:bg-indigo-600 transition-all">
-                    <MapPin className="w-6 h-6" />
+                  <div className="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500 transition-all shrink-0 text-blue-400 group-hover:text-white">
+                    <MapPin className="w-7 h-7" />
                   </div>
                   <div>
-                    <div className="font-bold text-lg">{t('location')}</div>
-                    <div className="text-indigo-100 group-hover:text-white transition-colors underline underline-offset-4 decoration-white/20">Near Palan G Mall, MI Realme Store, Jehanabad 804408</div>
+                    <div className="font-bold text-xl mb-1 text-white">{t('location')}</div>
+                    <div className="text-slate-400 group-hover:text-slate-200 transition-colors leading-relaxed">
+                      Near Palan G Mall, MI Realme Store<br/>
+                      Jehanabad, Bihar 804408
+                    </div>
                   </div>
                 </a>
 
-                <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <a 
                     href="tel:+917481068602"
-                    className="flex items-start gap-4 group hover:bg-white/5 p-4 rounded-2xl transition-all"
+                    className="flex items-start gap-5 group p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all backdrop-blur-md"
                   >
-                    <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:bg-indigo-600 transition-all">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500 transition-all shrink-0 text-blue-400 group-hover:text-white">
                       <Phone className="w-6 h-6" />
                     </div>
                     <div>
-                      <div className="font-bold text-lg">{t('callUs')}</div>
-                      <div className="text-indigo-100 group-hover:text-white transition-colors">+91 74810 68602</div>
+                      <div className="font-bold text-lg mb-1 text-white">First Number</div>
+                      <div className="text-slate-400 group-hover:text-slate-200 transition-colors">+91 74810 68602</div>
                     </div>
                   </a>
+                  
                   <a 
                     href="tel:+917488574905"
-                    className="flex items-start gap-4 group hover:bg-white/5 p-4 rounded-2xl transition-all -mt-4"
+                    className="flex items-start gap-5 group p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all backdrop-blur-md"
                   >
-                    <div className="w-12 h-12 opacity-0" /> {/* Spacer */}
-                    <div className="text-indigo-100 group-hover:text-white transition-colors">+91 74885 74905</div>
+                    <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500 transition-all shrink-0 text-blue-400 group-hover:text-white">
+                      <Phone className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-lg mb-1 text-white">Secondary Number</div>
+                      <div className="text-slate-400 group-hover:text-slate-200 transition-colors">+91 74885 74905</div>
+                    </div>
+                  </a>
+                  
+                  <a 
+                    href="tel:+919263722075"
+                    className="flex items-start gap-5 group p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all backdrop-blur-md"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500 transition-all shrink-0 text-blue-400 group-hover:text-white">
+                      <Phone className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-lg mb-1 text-white">Third Number</div>
+                      <div className="text-slate-400 group-hover:text-slate-200 transition-colors">+91 92637 22075</div>
+                    </div>
                   </a>
                 </div>
 
                 <a 
-                  href="mailto:uttamprinting.10@gmail.com"
-                  className="flex items-start gap-4 group hover:bg-white/5 p-4 rounded-2xl transition-all"
+                  href={`https://wa.me/917481068602`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-3 w-full bg-[#25D366] text-white py-6 rounded-3xl font-bold text-xl hover:bg-[#128C7E] transition-all shadow-xl shadow-[#25D366]/20 hover:shadow-[#25D366]/40 hover:-translate-y-1 active:scale-95"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:bg-indigo-600 transition-all">
-                    <Mail className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-lg">{t('emailUs')}</div>
-                    <div className="text-indigo-100 group-hover:text-white transition-colors">uttamprinting.10@gmail.com</div>
-                  </div>
+                  <MessageCircle className="w-7 h-7" />
+                  {t('chatOnWhatsApp')}
                 </a>
+
+                {/* Google Map Embed */}
+                <div className="mt-8 rounded-3xl overflow-hidden shadow-2xl border border-white/10 h-72 relative group">
+                  <div className="absolute inset-0 bg-blue-500/20 mix-blend-overlay pointer-events-none group-hover:opacity-0 transition-opacity duration-500" />
+                  <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d14406.84074246824!2d84.9922262!3d25.215456!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f2d7f877777777%3A0x7777777777777777!2sUttam%20Flex%20Printing!5e0!3m2!1sen!2sin!4v1712200000000!5m2!1sen!2sin" 
+                    width="100%" 
+                    height="100%" 
+                    style={{ border: 0 }} 
+                    allowFullScreen={true} 
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    className="filter grayscale-[20%] contrast-125"
+                  ></iframe>
+                </div>
               </div>
             </div>
 
-            <div className="bg-white p-8 md:p-12 rounded-3xl shadow-2xl">
+            <div className="bg-white/5 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-white/10">
               <form className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">{t('fullName')}</label>
-                    <input type="text" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all" placeholder="John Doe" />
+                    <label className="block text-sm font-bold text-slate-300 mb-2">{t('fullName')}</label>
+                    <input type="text" className="w-full px-5 py-4 rounded-2xl border border-white/10 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all bg-white/5 hover:bg-white/10 text-white" placeholder="John Doe" />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">{t('emailAddress')}</label>
-                    <input type="email" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all" placeholder="john@example.com" />
+                    <label className="block text-sm font-bold text-slate-300 mb-2">{t('emailAddress')}</label>
+                    <input type="email" className="w-full px-5 py-4 rounded-2xl border border-white/10 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all bg-white/5 hover:bg-white/10 text-white" placeholder="john@example.com" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">{t('serviceNeeded')}</label>
-                  <select className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all bg-white">
-                    <option>Flex Printing</option>
-                    <option>Vinyl Printing</option>
-                    <option>Banner Design</option>
-                    <option>Other</option>
+                  <label className="block text-sm font-bold text-slate-300 mb-2">{t('serviceNeeded')}</label>
+                  <select className="w-full px-5 py-4 rounded-2xl border border-white/10 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all bg-white/5 hover:bg-white/10 text-white appearance-none">
+                    <option className="bg-slate-900">Flex Printing</option>
+                    <option className="bg-slate-900">Vinyl Printing</option>
+                    <option className="bg-slate-900">Banner Design</option>
+                    <option className="bg-slate-900">Other</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">{t('message')}</label>
-                  <textarea rows={4} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all" placeholder="Tell us about your project..."></textarea>
+                  <label className="block text-sm font-bold text-slate-300 mb-2">{t('message')}</label>
+                  <textarea rows={5} className="w-full px-5 py-4 rounded-2xl border border-white/10 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all bg-white/5 hover:bg-white/10 text-white resize-none" placeholder="Tell us about your project..."></textarea>
                 </div>
                 <button 
                   type="submit"
-                  className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+                  className="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 hover:-translate-y-1"
                 >
                   {t('sendMessage')}
                 </button>
-                <a 
-                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 flex items-center justify-center gap-2"
-                >
-                  <Phone className="w-5 h-5" />
-                  {t('chatOnWhatsApp')}
-                </a>
               </form>
             </div>
           </div>
@@ -2322,81 +2899,95 @@ const Home = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+      <footer className="bg-slate-950 text-white py-24 relative overflow-hidden border-t border-white/10">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
             <div className="col-span-1 lg:col-span-1">
-              <div className="flex items-center gap-2 mb-6">
-                <Logo light={true} />
+              <div className="flex items-center gap-2 mb-8">
+                <Logo scrolled={false} />
               </div>
-              <p className="text-slate-400 text-sm leading-relaxed mb-6">
+              <p className="text-slate-400 text-lg leading-relaxed mb-8">
                 {t('footerDesc')}
               </p>
             </div>
 
             <div>
-              <h4 className="font-bold mb-6">{t('quickLinks')}</h4>
-              <ul className="space-y-4 text-slate-400 text-sm">
-                <li><a href="#home" className="hover:text-white transition-colors">{t('home')}</a></li>
-                <li><a href="#services" className="hover:text-white transition-colors">{t('services')}</a></li>
-                <li><a href="#ai-assistant" className="hover:text-white transition-colors">{t('aiAssistant')}</a></li>
-                <li><a href="#about" className="hover:text-white transition-colors">{t('about')}</a></li>
-                <li><a href="#contact" className="hover:text-white transition-colors">{t('contact')}</a></li>
+              <h4 className="text-xl font-bold mb-8 text-white uppercase tracking-widest">{t('quickLinks')}</h4>
+              <ul className="space-y-5 text-slate-400 text-lg">
+                <li><a href="#home" className="hover:text-blue-400 transition-colors flex items-center gap-2 group"><ChevronRight className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" /> {t('home')}</a></li>
+                <li><a href="#services" className="hover:text-blue-400 transition-colors flex items-center gap-2 group"><ChevronRight className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" /> {t('services')}</a></li>
+                <li><button onClick={() => setIsChatOpen(true)} className="hover:text-blue-400 transition-colors flex items-center gap-2 group"><ChevronRight className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" /> {t('aiAssistant')}</button></li>
+                <li><a href="#about" className="hover:text-blue-400 transition-colors flex items-center gap-2 group"><ChevronRight className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" /> {t('about')}</a></li>
+                <li><a href="#contact" className="hover:text-blue-400 transition-colors flex items-center gap-2 group"><ChevronRight className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" /> {t('contact')}</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-bold mb-6">Services</h4>
-              <ul className="space-y-4 text-slate-400 text-sm">
-                <li><a href="javascript:void(0)" className="hover:text-white transition-colors">Flex & Vinyl Printing</a></li>
-                <li><a href="javascript:void(0)" className="hover:text-white transition-colors">ID & Visiting Cards</a></li>
-                <li><a href="javascript:void(0)" className="hover:text-white transition-colors">Banners & Posters</a></li>
-                <li><a href="javascript:void(0)" className="hover:text-white transition-colors">T-shirt & Glow Signs</a></li>
+              <h4 className="text-xl font-bold mb-8 text-white uppercase tracking-widest">Services</h4>
+              <ul className="space-y-5 text-slate-400 text-lg">
+                <li className="flex items-center gap-2 group"><ChevronRight className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" /> Flex & Vinyl Printing</li>
+                <li className="flex items-center gap-2 group"><ChevronRight className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" /> ID & Visiting Cards</li>
+                <li className="flex items-center gap-2 group"><ChevronRight className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" /> Banners & Posters</li>
+                <li className="flex items-center gap-2 group"><ChevronRight className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" /> T-shirt & Glow Signs</li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-bold mb-6">{t('workingHours')}</h4>
-              <ul className="space-y-4 text-slate-400 text-sm">
-                <li className="flex justify-between">
-                  <span>{t('monSat')}:</span>
-                  <span className="text-white">9:00 AM - 9:00 PM</span>
+              <h4 className="text-xl font-bold mb-8 text-white uppercase tracking-widest">{t('workingHours')}</h4>
+              <ul className="space-y-6 text-slate-400 text-lg">
+                <li className="flex flex-col gap-1">
+                  <span className="text-blue-400 font-bold text-sm uppercase tracking-wider">{t('monSat')}</span>
+                  <span className="text-white font-medium">9:00 AM - 9:00 PM</span>
                 </li>
-                <li className="flex justify-between">
-                  <span>{t('sunday')}:</span>
-                  <span className="text-white">10:00 AM - 2:00 PM</span>
+                <li className="flex flex-col gap-1">
+                  <span className="text-blue-400 font-bold text-sm uppercase tracking-wider">{t('sunday')}</span>
+                  <span className="text-white font-medium">10:00 AM - 2:00 PM</span>
                 </li>
               </ul>
             </div>
           </div>
 
-          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 text-xs">
-            <div className="flex flex-col items-center md:items-start gap-1">
+          <div className="pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-8 text-slate-500 text-sm">
+            <div className="flex flex-col items-center md:items-start gap-2">
               <p>© 2026 Uttam Flex Printing. All rights reserved.</p>
-              <p className="text-slate-400">Proprietor: <span className="text-white font-medium">Mr. Ravi Kumar</span></p>
-              <p className="text-slate-500 mt-1">made with by ❤️ Ayush</p>
+              <p className="text-slate-600">Proprietor: <span className="text-white font-bold">Mr. Ravi Kumar</span></p>
+              <p className="text-slate-700 mt-2">made with ❤️ by Ayush</p>
             </div>
-            <div className="flex gap-6">
-              <a href="javascript:void(0)" className="hover:text-white transition-colors">Privacy Policy</a>
-              <a href="javascript:void(0)" className="hover:text-white transition-colors">Terms of Service</a>
+            <div className="flex gap-10">
+              <a href="javascript:void(0)" className="hover:text-blue-400 transition-colors">Privacy Policy</a>
+              <a href="javascript:void(0)" className="hover:text-blue-400 transition-colors">Terms of Service</a>
             </div>
           </div>
         </div>
       </footer>
 
       {/* Home Scroll Buttons */}
-      <FloatingHelpButton onOpenChat={() => setIsChatOpen(true)} />
+      <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end gap-4">
+        {!isChatOpen && (
+          <FloatingHelpButton onOpenChat={() => setIsChatOpen(true)} />
+        )}
+      </div>
     </div>
   );
 };
 
 export default function App() {
+  const [language, setLanguage] = useState<'en' | 'hi'>('en');
+  const t = (key: keyof typeof translations.en) => translations[language][key] || key;
+  
+  useEffect(() => {
+    const day = new Date().getDate();
+    const theme = themes[day % themes.length];
+    document.documentElement.style.setProperty('--primary-color', theme.primaryColor);
+    document.documentElement.style.setProperty('--font-family', theme.fontFamily);
+  }, []);
+
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-hidden" style={{ fontFamily: 'var(--font-family)' }}>
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/chat" element={<ChatPage />} />
           <Route path="/services/:slug" element={<ServiceDetail />} />
         </Routes>
       </Router>

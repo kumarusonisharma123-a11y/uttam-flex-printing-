@@ -12,7 +12,7 @@ export const PrintReadyChecklist = () => {
   return (
     <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
       <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-        <FileText className="w-6 h-6 text-indigo-600" />
+        <FileText className="w-6 h-6 text-blue-600" />
         Print-Ready Checklist
       </h3>
       <div className="space-y-4">

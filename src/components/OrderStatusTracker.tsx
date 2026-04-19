@@ -19,7 +19,7 @@ export const OrderStatusTracker = () => {
   return (
     <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
       <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-        <Package className="w-6 h-6 text-indigo-600" />
+        <Package className="w-6 h-6 text-blue-600" />
         Track Your Order
       </h3>
       <div className="flex gap-2">
@@ -28,11 +28,11 @@ export const OrderStatusTracker = () => {
           value={orderId}
           onChange={(e) => setOrderId(e.target.value)}
           placeholder="Enter Order ID (e.g., UFP-123)"
-          className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+          className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
         />
         <button 
           onClick={handleTrack}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-indigo-700 transition-all"
+          className="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-blue-700 transition-all"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
         </button>
