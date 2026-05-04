@@ -74,6 +74,7 @@ import {
   Trash,
   Wallet,
   Truck,
+  Sparkles,
 } from "lucide-react";
 
 const WHATSAPP_NUMBER = "917481068602"; // User's WhatsApp number
@@ -1170,16 +1171,16 @@ const FloatingHelpButton = ({ onOpenChat }) => {
         )}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
+          className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
             isOpen
               ? "bg-slate-900 text-white rotate-90"
               : "bg-blue-600 text-white hover:scale-110"
           }`}
         >
           {isOpen ? (
-            <X className="w-8 h-8" />
+            <X className="w-6 h-6 sm:w-8 sm:h-8" />
           ) : (
-            <HelpCircle className="w-8 h-8" />
+            <HelpCircle className="w-6 h-6 sm:w-8 sm:h-8" />
           )}
         </button>
       </div>
@@ -1452,8 +1453,7 @@ const services = [
     longDescription:
       "Our Flex Printing service offers durable and vibrant solutions for all your large-scale advertising needs. We use high-grade PVC flex material that is weather-resistant and perfect for outdoor use.",
     icon: <Printer className="w-6 h-6" />,
-    image:
-      "https://images.unsplash.com/photo-1612810806563-4cb8265db55f?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://images.unsplash.com/photo-1593642634443-44ba5cc6cbd2?q=80&w=800&h=600&auto=format&fit=crop",
     category: "Large Format",
     popularity: 10,
     variants: [
@@ -1477,8 +1477,7 @@ const services = [
     longDescription:
       "From small indoor banners to massive outdoor displays, we provide high-impact visual solutions for any occasion. Our banners are made from reinforced vinyl with grommets for easy hanging.",
     icon: <Flag className="w-6 h-6" />,
-    image:
-      "https://images.unsplash.com/photo-1583321500900-82807e458f3c?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://images.unsplash.com/photo-1583321500900-82807e458f3c?q=80&w=800&h=600&auto=format&fit=crop",
     category: "Large Format",
     popularity: 9,
     variants: [
@@ -1500,8 +1499,7 @@ const services = [
     longDescription:
       "Our posters are printed on high-quality photo paper with rich colors. Perfect for sales promotions, movie releases, or educational displays, our prints are designed to stand out.",
     icon: <ImageIcon className="w-6 h-6" />,
-    image:
-      "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?q=80&w=800&h=600&auto=format&fit=crop",
     category: "Large Format",
     popularity: 8,
     variants: [
@@ -1524,8 +1522,7 @@ const services = [
     longDescription:
       "Make a lasting first impression with our premium business card printing. We offer a wide range of paper stocks and finishes like matte lamination and spot UV.",
     icon: <Contact className="w-6 h-6" />,
-    image:
-      "https://images.unsplash.com/photo-1593642532400-2682810df593?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://images.unsplash.com/photo-1593642532400-2682810df593?q=80&w=800&h=600&auto=format&fit=crop",
     category: "Business Essentials",
     popularity: 9,
     variants: [
@@ -1547,8 +1544,7 @@ const services = [
     longDescription:
       "Illuminate your brand with our premium glow sign boards. These backlit displays are designed for maximum visibility, making your business stand out even in the dark.",
     icon: <Sun className="w-6 h-6" />,
-    image:
-      "https://images.unsplash.com/photo-1563203369-26f2e4a5ccf7?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://images.unsplash.com/photo-1563203369-26f2e4a5ccf7?q=80&w=800&h=600&auto=format&fit=crop",
     category: "Large Format",
     popularity: 7,
   },
@@ -1565,8 +1561,7 @@ const services = [
     longDescription:
       "Personalize your wardrobe or promote your brand with our custom T-shirt printing services. We offer high-quality prints that are durable and soft to the touch.",
     icon: <Shirt className="w-6 h-6" />,
-    image:
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=800&h=600&auto=format&fit=crop",
     category: "Apparel",
     popularity: 9,
     variants: [
@@ -1588,8 +1583,7 @@ const services = [
     longDescription:
       "Our PVC ID cards are durable, waterproof, and feature high-resolution printing for clear identification. Perfect for corporate, school, or event use.",
     icon: <IdCard className="w-6 h-6" />,
-    image:
-      "https://images.unsplash.com/photo-1611095773767-116b5420216b?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://images.unsplash.com/photo-1611095773767-116b5420216b?q=80&w=800&h=600&auto=format&fit=crop",
     category: "Business Essentials",
     popularity: 8,
   },
@@ -1605,8 +1599,7 @@ const services = [
     longDescription:
       "Make every sip special with our custom-printed ceramic mugs. Perfect for gifts, corporate branding, or personal use, our prints are dishwasher safe and vibrant.",
     icon: <Coffee className="w-6 h-6" />,
-    image:
-      "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?q=80&w=800&h=600&auto=format&fit=crop",
     category: "Gifts",
     popularity: 7,
   },
@@ -1622,8 +1615,7 @@ const services = [
     longDescription:
       "Durable and stylish keychains perfect for branding or gifts. Available in various shapes and materials.",
     icon: <Key className="w-6 h-6" />,
-    image:
-      "https://images.unsplash.com/photo-1595763517918-7711343c4423?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://images.unsplash.com/photo-1595763517918-7711343c4423?q=80&w=800&h=600&auto=format&fit=crop",
     category: "Gifts",
     popularity: 6,
   },
@@ -1639,8 +1631,7 @@ const services = [
     longDescription:
       "Waterproof and vibrant vinyl stickers. Perfect for laptops, bottles, or promotional giveaways.",
     icon: <StickyNote className="w-6 h-6" />,
-    image:
-      "https://images.unsplash.com/photo-1572676990675-01e915152865?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://images.unsplash.com/photo-1572676990675-01e915152865?q=80&w=800&h=600&auto=format&fit=crop",
     category: "Business Essentials",
     popularity: 8,
   },
@@ -1656,8 +1647,7 @@ const services = [
     longDescription:
       "Portable and professional roll-up standees. Easy to carry and set up, perfect for events, showrooms, and exhibitions.",
     icon: <Flag className="w-6 h-6" />,
-    image:
-      "https://images.unsplash.com/photo-1594498653385-d5172c532c00?auto=format&fit=crop&q=80&w=800&h=600",
+    image: "https://images.unsplash.com/photo-1594498653385-d5172c532c00?q=80&w=800&h=600&auto=format&fit=crop",
     category: "Large Format",
     popularity: 8,
   },
@@ -1869,6 +1859,16 @@ const ServiceDetail = () => {
               </div>
               <h1 className="text-5xl md:text-6xl font-display font-bold text-slate-950 mb-8 tracking-tight leading-tight">
                 {service.title}
+                {slug === "visiting-cards" && (
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-600 text-white text-xs font-bold ml-3 align-middle"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    New!
+                  </motion.span>
+                )}
               </h1>
               <p className="text-xl text-slate-600 mb-10 leading-relaxed font-medium">
                 {service.longDescription}
@@ -1917,7 +1917,7 @@ const ServiceDetail = () => {
                             <button
                               key={v.size || index}
                               onClick={() => setSelectedVariant(v)}
-                              className={`p-5 rounded-2xl border-2 transition-all text-left group ${
+                              className={`p-5 rounded-2xl border-2 transition-all text-left group hover:scale-[1.02] hover:shadow-md ${
                                 selectedVariant?.size === v.size
                                   ? "border-blue-600 bg-blue-50/50 ring-4 ring-blue-600/5"
                                   : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50"
@@ -2317,7 +2317,7 @@ const ProjectGalleryModal = ({
   );
 };
 
-const Home = () => {
+function Home() {
   const [language, setLanguage] = useState<"en" | "hi">("en");
   const t = (key: keyof typeof translations.en) =>
     translations[language][key] || key;
@@ -2756,10 +2756,10 @@ const Home = () => {
         onClose={() => setIsGalleryOpen(false)}
       />
 
-      {/* Top Banners & Nav */}
-      <div className="relative w-full z-[100] flex flex-col shadow-md transition-all duration-500 bg-slate-950">
+      {/* Header Wrapper */}
+      <div className="sticky top-0 z-[100] w-full flex flex-col shadow-md transition-all duration-500 bg-slate-950">
         {/* Special Offer Banner */}
-        <div className="bg-red-600 text-white py-2 overflow-hidden">
+        <div className="bg-red-600 text-white h-10 flex items-center overflow-hidden block">
           <motion.div
             animate={{ x: [0, -1000] }}
             transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
@@ -2791,10 +2791,9 @@ const Home = () => {
             </span>
           </div>
         </div>
-      </div>
 
       <nav
-        className={`sticky top-0 left-0 w-full z-[90] transition-all duration-500 ${scrolled || isMenuOpen ? "bg-slate-950/95 backdrop-blur-xl shadow-2xl py-3 border-b border-white/5" : "bg-slate-950/80 backdrop-blur-md py-4 border-b border-white/10"}`}
+        className={`w-full transition-all duration-500 ${scrolled || isMenuOpen ? "bg-slate-950/95 backdrop-blur-xl shadow-2xl py-3 border-b border-white/5" : "bg-slate-950/80 backdrop-blur-md py-4 border-b border-white/10"}`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
@@ -2888,59 +2887,61 @@ const Home = () => {
           </div>
         </div>
       </nav>
+      </div>
 
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: "-100%" }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: "-100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[65] bg-slate-950 pt-48 px-6 md:hidden overflow-y-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-slate-950 flex flex-col pt-24 px-6 md:hidden"
           >
-            <div className="flex justify-between items-center mb-8 pb-4 border-b border-white/10">
-              <span className="text-xs font-black uppercase tracking-widest text-slate-500">
-                Navigation Menu
-              </span>
+            <div className="absolute top-6 right-6">
               <button
                 onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-1 text-white font-bold text-xs uppercase"
+                className="p-2 text-white border border-white/20 rounded-full hover:bg-white/10 transition-colors"
+                aria-label="Close menu"
               >
-                Close <X className="w-4 h-4" />
+                <X className="w-8 h-8" />
               </button>
             </div>
-            <div className="flex flex-col gap-2">
+            
+            <div className="flex flex-col gap-6 w-full max-w-sm mx-auto">
+              <div className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">
+                Navigation Menu
+              </div>
+              
               {["Home", "About", "Contact"].map((item) => (
                 <a
                   key={item}
                   href={`#${item.toLowerCase()}`}
-                  className="text-2xl font-black text-white block py-4 border-b border-white/10 uppercase tracking-tighter flex justify-between items-center group"
+                  className="text-4xl font-black text-white py-4 border-b border-white/10 uppercase tracking-tighter flex justify-between items-center group hover:text-blue-400 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item}
-                  <ChevronRight className="w-6 h-6 text-slate-700 group-hover:text-blue-400 transition-colors" />
+                  <ChevronRight className="w-8 h-8 text-slate-700 group-hover:text-blue-400" />
                 </a>
               ))}
+              
               <button
                 onClick={() => {
                   setIsChatOpen(true);
                   setIsMenuOpen(false);
                 }}
-                className="text-2xl font-black text-blue-600 flex py-4 border-b border-slate-100 uppercase tracking-tighter justify-between items-center group"
+                className="text-4xl font-black text-blue-500 flex py-4 border-b border-white/10 uppercase tracking-tighter justify-between items-center group hover:text-blue-400"
               >
-                <div className="flex items-center gap-3">
-                  <Bot className="w-8 h-8" />
-                  AI Assistant
-                </div>
-                <ChevronRight className="w-6 h-6 text-blue-300 group-hover:text-blue-600 transition-colors" />
+                AI Assistant
+                <ChevronRight className="w-8 h-8" />
               </button>
+
               <button
                 onClick={() => {
                   openQuoteModal();
                   setIsMenuOpen(false);
                 }}
-                className="bg-zinc-950 text-white w-full py-4 rounded-xl text-lg font-bold mt-6"
+                className="bg-blue-600 text-white w-full py-5 rounded-2xl text-xl font-bold mt-8 hover:bg-blue-500 transition-all shadow-xl shadow-blue-900/40"
               >
                 Get a Quote
               </button>
@@ -3049,6 +3050,23 @@ const Home = () => {
                 <Calculator className="w-5 h-5 text-blue-400" />
                 {t("priceEstimator")}
               </button>
+            </div>
+            
+            <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto border-t border-white/10 pt-8">
+              {[
+                { label: "Projects Completed", value: "10,000+" },
+                { label: "Happy Clients", value: "5,000+" },
+                { label: "Years Experience", value: "8+" },
+              ].map((stat, i) => (
+                <div key={i}>
+                  <div className="text-2xl md:text-3xl font-black text-white mb-1">
+                    {stat.value}
+                  </div>
+                  <div className="text-[10px] uppercase tracking-widest text-blue-300/60 font-bold">
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
             </div>
           </motion.div>
         </div>
@@ -3769,16 +3787,12 @@ const Home = () => {
           </div>
         </div>
       </footer>
-
-      {/* Home Scroll Buttons */}
-      <div className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 z-[110] flex flex-col items-end gap-4">
-        {!isChatOpen && (
+        <div className="fixed bottom-6 right-6 z-[100]">
           <FloatingHelpButton onOpenChat={() => setIsChatOpen(true)} />
-        )}
-      </div>
+        </div>
     </div>
   );
-};
+}
 
 export default function App() {
   const [language, setLanguage] = useState<"en" | "hi">("en");
@@ -3800,7 +3814,7 @@ export default function App() {
 
   return (
     <div
-      className="overflow-x-hidden w-screen max-w-full min-h-screen"
+      className="overflow-x-hidden w-full min-h-screen"
     >
       <Router>
         <Routes>
