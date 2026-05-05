@@ -3005,17 +3005,17 @@ function Home() {
                 All Bihar & Jharkhand Delivery
               </div>
             </div>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[0.9] tracking-tighter mb-6 font-display uppercase">
-              <span className="text-xl md:text-3xl lg:text-4xl font-black mb-4 tracking-widest uppercase drop-shadow-2xl block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 animate-gradient-x">PRINT LIKE A BOSS</span>
+            <h1 className="text-2xl md:text-7xl lg:text-8xl font-black text-white leading-[0.9] tracking-tighter mb-6 font-display uppercase">
+              <span className="text-sm md:text-3xl lg:text-4xl font-black mb-4 tracking-widest uppercase drop-shadow-2xl block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 animate-gradient-x">PRINT LIKE A BOSS</span>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
                 Uttam Flex Printing
               </span>
               <br />
-              <span className="text-3xl md:text-5xl lg:text-6xl text-slate-300 font-bold tracking-tight mt-4 block text-shadow-sm">
+              <span className="text-lg md:text-5xl lg:text-6xl text-slate-300 font-bold tracking-tight mt-4 block text-shadow-sm">
                 Best Printing In Jehanabad
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-blue-200 mb-12 max-w-2xl mx-auto font-medium tracking-wide">
+            <p className="text-sm md:text-2xl text-blue-200 mb-12 max-w-2xl mx-auto font-medium tracking-wide">
               Fast Delivery <span className="text-white/30 px-2">|</span> Low
               Price <span className="text-white/30 px-2">|</span> High Quality
             </p>
