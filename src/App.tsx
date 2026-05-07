@@ -2983,6 +2983,16 @@ function Home() {
               style={{ willChange: "transform" }}
               className="absolute top-[5%] -right-[15%] w-[70%] h-[70%] bg-cyan-500/20 rounded-full blur-[90px]"
             />
+            <motion.div
+              animate={{
+                x: [0, 100, 0],
+                y: [0, -100, 0],
+                scale: [1, 1.3, 1],
+              }}
+              transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
+              style={{ willChange: "transform" }}
+              className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] bg-pink-500/10 rounded-full blur-[100px]"
+            />
           </div>
 
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 opacity-90" />
@@ -2995,36 +3005,36 @@ function Home() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="max-w-4xl mx-auto text-center"
           >
-            <div className="flex flex-wrap justify-center gap-4 mb-8">
-              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest backdrop-blur-md">
-                <Zap className="w-3.5 h-3.5" />
+            <div className="flex flex-wrap justify-center gap-3 mb-6">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest backdrop-blur-md">
+                <Zap className="w-3 h-3" />
                 Best in Jehanabad
               </div>
-              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-bold uppercase tracking-widest backdrop-blur-md">
-                <Truck className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest backdrop-blur-md">
+                <Truck className="w-3 h-3" />
                 All Bihar & Jharkhand Delivery
               </div>
             </div>
-            <h1 className="text-2xl md:text-7xl lg:text-8xl font-black text-white leading-[0.9] tracking-tighter mb-6 font-display uppercase">
-              <span className="text-sm md:text-3xl lg:text-4xl font-black mb-4 tracking-widest uppercase drop-shadow-2xl block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 animate-gradient-x">PRINT LIKE A BOSS</span>
+            <h1 className="text-2xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[1] tracking-tighter mb-4 font-display uppercase">
+              <span className="text-xs sm:text-lg md:text-3xl lg:text-4xl font-black mb-2 tracking-widest uppercase drop-shadow-2xl block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 animate-gradient-x">All Printing Solutions in One Place</span>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
                 Uttam Flex Printing
               </span>
               <br />
-              <span className="text-lg md:text-5xl lg:text-6xl text-slate-300 font-bold tracking-tight mt-4 block text-shadow-sm">
+              <span className="text-lg sm:text-3xl md:text-5xl lg:text-6xl text-slate-300 font-bold tracking-tight mt-2 block text-shadow-sm">
                 Best Printing In Jehanabad
               </span>
             </h1>
-            <p className="text-sm md:text-2xl text-blue-200 mb-12 max-w-2xl mx-auto font-medium tracking-wide">
-              Fast Delivery <span className="text-white/30 px-2">|</span> Low
-              Price <span className="text-white/30 px-2">|</span> High Quality
+            <p className="text-xs sm:text-base md:text-2xl text-blue-200 mb-8 max-w-2xl mx-auto font-medium tracking-wide">
+              Fast Delivery <span className="text-white/30 px-1">|</span> Low
+              Price <span className="text-white/30 px-1">|</span> High Quality
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={() => openQuoteModal()}
                 className="w-full sm:w-auto bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-500 transition-all flex items-center justify-center gap-2 group shadow-xl shadow-blue-900/20 hover:shadow-blue-900/40 hover:-translate-y-1"
               >
-                {t("getQuote")}
+                Order Now
                 <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
               <a
@@ -3034,7 +3044,7 @@ function Home() {
                 className="w-full sm:w-auto bg-[#25D366] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-[#128C7E] transition-all flex items-center justify-center gap-2 shadow-xl shadow-[#25D366]/20 hover:shadow-[#25D366]/40 hover:-translate-y-1"
               >
                 <MessageCircle className="w-5 h-5" />
-                {t("whatsappUs")}
+                Contact Now
               </a>
               <button
                 onClick={() => setIsChatOpen(true)}
